@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import "@/App.css";
+import "./App.css";
 import { LanguageProvider, useLanguage, languages } from "./context/LanguageContext";
 import { menuData, galleryImages } from "./data/menuData";
 import { motion, AnimatePresence, useInView } from "framer-motion";
