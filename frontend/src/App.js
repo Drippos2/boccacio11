@@ -646,7 +646,7 @@ const FoodSection = () => {
   );
 };
 
-// Jedálny Lístok Section
+// Jedálny Lístok Section (Hlavná karta s kategóriami)
 const JedalnyListokSection = () => {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('pizza');
@@ -766,27 +766,18 @@ const JedalnyListokSection = () => {
   };
 
   return (
-    <section id="jedalny-listok" className="py-24 md:py-32 bg-background" data-testid="jedalny-listok-section">
+    <section id="jedalny-listok" className="py-24 md:py-32 bg-background">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <AnimatedSection className="text-center mb-16">
           <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
             {t("jedalnyListok.subtitle")}
           </motion.span>
-          <motion.h2
-            variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
-          >
+          <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground">
             {t("jedalnyListok.title")}
           </motion.h2>
         </AnimatedSection>
 
-        {/* Category Tabs */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="menu-category-tabs"
-        >
+        <div className="menu-category-tabs">
           {menuCategories.map((cat) => (
             <button
               key={cat.id}
@@ -797,24 +788,11 @@ const JedalnyListokSection = () => {
               <span className="menu-category-name">{t(`jedalnyListok.categories.${cat.id}`)}</span>
             </button>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Menu Items */}
-        <motion.div 
-          key={activeCategory}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="menu-items-grid"
-        >
+        <motion.div key={activeCategory} className="menu-items-grid">
           {menuItems[activeCategory]?.map((item, index) => (
-            <motion.div
-              key={item.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="menu-item-card"
-            >
+            <motion.div key={item.name} className="menu-item-card">
               <div className="menu-item-header">
                 <h3 className="menu-item-name">{item.name}</h3>
                 <span className="menu-item-price">{item.price}</span>
@@ -826,20 +804,6 @@ const JedalnyListokSection = () => {
             </motion.div>
           ))}
         </motion.div>
-
-        {/* Allergens Note */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="mt-12 text-center text-sm text-muted-foreground"
-        >
-          <p className="mb-2 font-medium">{t("jedalnyListok.allergensNote")}</p>
-          <p className="max-w-4xl mx-auto leading-relaxed">
-            {t("jedalnyListok.allergensInfo")}
-          </p>
-          <p className="mt-4 italic">{t("jedalnyListok.glutenFree")}</p>
-        </motion.div>
       </div>
     </section>
   );
@@ -848,43 +812,17 @@ const JedalnyListokSection = () => {
 // Menu Section - Denné Menu
 const MenuSection = () => {
   const { t } = useLanguage();
-  // Vytvoríme miesto pre dáta z databázy
   const [dailyMenu, setDailyMenu] = useState(null);
-  {/* Menu č.1 - DYNAMICKÉ */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="daily-menu-card"
-          >
-            <div className="daily-menu-header">
-              <h3 className="daily-menu-title">Menu č.1</h3>
-              {/* Cena z databázy, ak nie je, ukáže 8,90 € */}
-              <span className="daily-menu-price">{dailyMenu ? dailyMenu.price : "8,90 €"}</span>
-            </div>
-            <div className="daily-menu-content">
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Polievka</span>
-                {/* Polievka z databázy */}
-                <span className="daily-menu-value">
-                  {dailyMenu ? dailyMenu.soup : "Načítavam..."}
-                </span>
-              </div>
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Hlavné jedlo</span>
-                {/* Hlavné jedlo z databázy */}
-                <span className="daily-menu-value">
-                  {dailyMenu ? dailyMenu.mainCourse : "Načítavam..."}
-                </span>
-              </div>
-              {/* Prílohu zatiaľ necháme takto, alebo ak ju máš v DB, daj dailyMenu.sideDish */}
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Príloha</span>
-                <span className="daily-menu-value">V cene menu</span>
-              </div>
-            </div>
-          </motion.div>
+
+  useEffect(() => {
+    fetch("https://boccacio11.onrender.com/api/daily-menu")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setDailyMenu(data[0]);
+        else setDailyMenu(data);
+      })
+      .catch(err => console.error("Chyba pri načítavaní menu:", err));
+  }, []);
 
   const pizzaOptions = [
     { name: 'Prosciutto e funghi', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella, šunka, šampiňóny' },
@@ -896,6 +834,77 @@ const MenuSection = () => {
     { name: 'Vegetariana', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella, olivy, kukurica, kápia, cibuľa, šampiňóny' },
     { name: 'Margherita', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella' },
   ];
+
+  return (
+    <section id="menu" className="py-24 md:py-32 relative bg-background">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <AnimatedSection className="text-center mb-16">
+          <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
+            {t("menu.subtitle")}
+          </motion.span>
+          <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground">
+            {t("menu.title")}
+          </motion.h2>
+        </AnimatedSection>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* KARTA Č.1 - DENNÉ MENU */}
+          <motion.div variants={fadeInUp} className="menu-card featured">
+            <div className="menu-card-badge">{t("menu.dailyBadge")}</div>
+            <h3 className="text-2xl font-semibold mb-4">Menu č.1</h3>
+            <div className="space-y-4">
+              <div>
+                <span className="block text-sm uppercase text-primary font-medium">Polievka</span>
+                <p className="italic">{dailyMenu ? dailyMenu.soup : "Načítavam..."}</p>
+              </div>
+              <div>
+                <span className="block text-sm uppercase text-primary font-medium">Hlavné jedlo</span>
+                <p className="font-medium">{dailyMenu ? dailyMenu.mainCourse : "Načítavam..."}</p>
+              </div>
+              <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
+                 <span className="text-2xl font-bold text-primary">{dailyMenu ? dailyMenu.price : "8,90 €"}</span>
+                 <span className="text-xs text-muted-foreground">Po-Pi 11:00-14:00</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* KARTA Č.2 - PIZZA MENU */}
+          <motion.div variants={fadeInUp} className="menu-card">
+            <h3 className="text-2xl font-semibold mb-4">Menu č.2 - Pizza</h3>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {pizzaOptions.map((pizza, i) => (
+                <div key={i} className="text-sm border-b border-primary/5 pb-2">
+                  <span className="font-medium text-primary">{i+1}. {pizza.name}</span>
+                  <p className="text-muted-foreground text-xs leading-tight">{pizza.desc}</p>
+                </div>
+              ))}
+            </div>
+            <div className="pt-4 mt-auto border-t border-primary/10 flex justify-between items-center">
+               <span className="text-2xl font-bold text-primary">8,90 €</span>
+               <span className="text-xs text-muted-foreground">Vrátane polievky</span>
+            </div>
+          </motion.div>
+
+          {/* KARTA Č.3 - ŠALÁT MENU */}
+          <motion.div variants={fadeInUp} className="menu-card">
+            <h3 className="text-2xl font-semibold mb-4">Menu č.3 - Šalát</h3>
+            <div className="space-y-4">
+              <div>
+                <span className="block text-sm uppercase text-primary font-medium">Hlavné jedlo</span>
+                <p className="font-medium">Insalata di Pollo</p>
+                <p className="text-sm text-muted-foreground">Listový šalát, paradajky, olivy, grilované kuracie mäso, bylinkový dresing, toast</p>
+              </div>
+              <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
+                 <span className="text-2xl font-bold text-primary">8,50 €</span>
+                 <span className="text-xs text-muted-foreground">Vrátane polievky</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
   return (
     <section id="menu" className="py-24 md:py-32 bg-muted/30" data-testid="menu-section">
