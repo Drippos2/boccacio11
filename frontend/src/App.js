@@ -1,13 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import "./App.css";
+import "@/App.css";
 import { LanguageProvider, useLanguage, languages } from "./context/LanguageContext";
 import { menuData, galleryImages } from "./data/menuData";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Lenis from "@studio-freight/lenis";
 import { Instagram, Facebook, Phone, Mail, MapPin, Clock, ChevronDown, Menu, X } from "lucide-react";
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminPanel from "./AdminPanel";
 
 // Animation variants
 const fadeInUp = {
@@ -43,10 +40,7 @@ const AnimatedSection = ({ children, className = "" }) => {
       ref={ref}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      variants={{
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
-      }}
+      variants={staggerContainer}
       className={className}
     >
       {children}
@@ -54,311 +48,602 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// --- COMPONENTS ---
-
+// Navigation Component
 const Navigation = () => {
   const { t, language, setLanguage } = useLanguage();
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 100);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: t("nav.home"), href: "#home" },
-    { name: t("nav.about"), href: "#about" },
-    { name: t("nav.menu"), href: "#jedalny-listok" },
-    { name: t("nav.daily"), href: "#menu" },
-    { name: t("nav.contact"), href: "#contact" },
+  const navItems = [
+    { key: "about", href: "#about" },
+    { key: "interior", href: "#interior" },
+    { key: "winterGarden", href: "#winter-garden" },
+    { key: "food", href: "#food" },
+    { key: "jedalnyListok", href: "#jedalny-listok" },
+    { key: "menu", href: "#menu" },
+    { key: "contact", href: "#contact" },
   ];
 
+  const scrollToSection = (href) => {
+    setMobileMenuOpen(false);
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? "bg-background/95 backdrop-blur-md py-4 shadow-lg" : "bg-transparent py-6"}`}>
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
-        <a href="#home" className="text-2xl font-semibold tracking-tighter text-foreground">
-          BOCCACCIO
-        </a>
-
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium hover:text-primary transition-colors uppercase tracking-widest"
-            >
-              {link.name}
-            </a>
-          ))}
-
-          {/* Language Switcher */}
-          <div className="flex items-center gap-3 ml-4 border-l pl-8 border-foreground/10">
-            {Object.entries(languages).map(([code, lang]) => (
+    <>
+      {/* Hero Navigation - Full width, transparent, shown at top */}
+      <motion.nav 
+        className={`hero-nav ${scrolled ? "hero-nav-hidden" : ""}`}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+        data-testid="hero-navigation"
+      >
+        <div className="hero-nav-container">
+          <div className="hero-nav-links">
+            {navItems.map((item) => (
               <button
-                key={code}
-                onClick={() => setLanguage(code)}
-                className={`text-xs font-bold transition-all ${
-                  language === code
-                    ? "text-primary scale-110"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                key={item.key}
+                onClick={() => scrollToSection(item.href)}
+                className="hero-nav-link"
+                data-testid={`hero-nav-${item.key}`}
               >
-                {lang.flag}
+                {t(`nav.${item.key}`)}
+              </button>
+            ))}
+          </div>
+          
+          {/* Language Flags */}
+          <div className="hero-nav-flags">
+            {Object.values(languages).map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                className={`hero-flag-btn ${language === lang.code ? "active" : ""}`}
+                data-testid={`lang-${lang.code}`}
+                title={lang.name}
+              >
+                <img 
+                  src={lang.flagUrl} 
+                  alt={lang.name}
+                  className="w-6 h-4 object-cover rounded-sm"
+                />
               </button>
             ))}
           </div>
         </div>
+      </motion.nav>
 
-        {/* Mobile Toggle */}
-        <button
-          className="md:hidden text-foreground"
-          onClick={() => setMobileMenuOpen(true)}
-        >
-          <Menu size={28} />
-        </button>
-      </div>
+      {/* Scrolled Navigation - Compact pill, shown when scrolling */}
+      <nav className={`scrolled-nav ${scrolled ? "scrolled-nav-visible" : ""}`} data-testid="main-navigation">
+        <div className="scrolled-nav-container">
+          {/* Logo/Brand */}
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="scrolled-nav-brand"
+          >
+            Boccaccio
+          </button>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-1">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => scrollToSection(item.href)}
+                className="scrolled-nav-link"
+                data-testid={`nav-${item.key}`}
+              >
+                {t(`nav.${item.key}`)}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile Menu Button - inside pill */}
+          <button
+            className="lg:hidden p-2 text-white/80 hover:text-white"
+            onClick={() => setMobileMenuOpen(true)}
+            data-testid="mobile-menu-toggle"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      </nav>
+
+      {/* Hamburger Menu - Left Corner (visible when scrolled) */}
+      <button
+        className={`scrolled-nav-hamburger ${scrolled ? "scrolled-nav-hamburger-visible" : ""}`}
+        onClick={() => setMobileMenuOpen(true)}
+        data-testid="scrolled-menu-toggle"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 bg-background z-[60] flex flex-col p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mobile-menu"
+            data-testid="mobile-menu"
           >
-            <div className="flex justify-between items-center mb-12">
-              <span className="text-2xl font-semibold tracking-tighter">BOCCACCIO</span>
-              <button onClick={() => setMobileMenuOpen(false)}>
-                <X size={32} />
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute top-6 right-6 p-2"
+              data-testid="mobile-menu-close"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => scrollToSection(item.href)}
+                className="mobile-menu-link"
+              >
+                {t(`nav.${item.key}`)}
               </button>
-            </div>
-            <div className="flex flex-col gap-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-4xl font-light hover:text-primary transition-colors lowercase tracking-tighter"
+            ))}
+
+            {/* Language Flags in Mobile Menu */}
+            <div className="flex items-center gap-3 mt-8">
+              {Object.values(languages).map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`lang-flag-btn ${language === lang.code ? "active" : ""}`}
+                  title={lang.name}
                 >
-                  {link.name}
-                </a>
+                  <img 
+                    src={lang.flagUrl} 
+                    alt={lang.name}
+                    className="w-8 h-5 object-cover rounded-sm"
+                  />
+                </button>
               ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 };
 
+// Hero Section
 const HeroSection = () => {
   const { t } = useLanguage();
+  const videoRef = useRef(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  // Slideshow media: 2 images + 1 video, repeating
+  const heroMedia = [
+    { type: 'image', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/d6f5pm7l_1.jpg' },
+    { type: 'image', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/qpygp3k4_2h.jpg' },
+    { type: 'video', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/5g422ktq_lv_7450562944921881917_20260319224658.mp4' },
+  ];
+
+  useEffect(() => {
+    const media = heroMedia[currentSlide];
+    
+    if (media.type === 'image') {
+      // Show image for 2 seconds, then move to next
+      const timer = setTimeout(() => {
+        setCurrentSlide((prev) => (prev + 1) % heroMedia.length);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else if (media.type === 'video') {
+      // For video, wait until it ends
+      setIsVideoPlaying(true);
+      const video = videoRef.current;
+      if (video) {
+        video.currentTime = 0;
+        video.play();
+        const handleEnded = () => {
+          setIsVideoPlaying(false);
+          setCurrentSlide((prev) => (prev + 1) % heroMedia.length);
+        };
+        video.addEventListener('ended', handleEnded);
+        return () => video.removeEventListener('ended', handleEnded);
+      }
+    }
+  }, [currentSlide]);
+
+  const scrollToSection = (href) => {
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
-    <section id="home" className="relative h-screen flex items-center justify-center overflow-hidden bg-black text-white">
-      <div className="absolute inset-0 z-0">
-        <motion.div
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.6 }}
-          transition={{ duration: 2 }}
-          className="w-full h-full bg-[url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
+    <section className="hero-section" data-testid="hero-section">
+      {/* Background Slideshow - Images and Video */}
+      <div className="hero-video-container">
+        {heroMedia.map((media, index) => (
+          media.type === 'image' ? (
+            <div
+              key={index}
+              className={`hero-slide ${currentSlide === index ? 'active' : ''}`}
+              style={{ backgroundImage: `url(${media.src})` }}
+            />
+          ) : (
+            <video
+              key={index}
+              ref={videoRef}
+              muted
+              playsInline
+              className={`hero-video ${currentSlide === index ? '' : 'hidden'}`}
+            >
+              <source src={media.src} type="video/mp4" />
+            </video>
+          )
+        ))}
       </div>
+      <div className="hero-overlay-video" />
 
-      <div className="relative z-10 text-center px-6">
-        <motion.span
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 text-center">
+        {/* Main Title - Arc Effect */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.3 }}
+          className="flex flex-col items-center"
+        >
+          <h1 className="hero-title-arc" data-testid="hero-title">
+            <span className="arc-letter arc-1">B</span>
+            <span className="arc-letter arc-2">o</span>
+            <span className="arc-letter arc-3">c</span>
+            <span className="arc-letter arc-4">c</span>
+            <span className="arc-letter arc-5">a</span>
+            <span className="arc-letter arc-6">c</span>
+            <span className="arc-letter arc-7">c</span>
+            <span className="arc-letter arc-8">i</span>
+            <span className="arc-letter arc-9">o</span>
+          </h1>
+          <h2 className="hero-title-sub-elegant">
+            <span>R</span><span>e</span><span>š</span><span>t</span><span>a</span><span>u</span><span>r</span><span>á</span><span>c</span><span>i</span><span>a</span>
+          </h2>
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="font-script text-2xl md:text-3xl text-primary mb-4 block"
+          transition={{ duration: 1, delay: 0.9 }}
+          className="hero-subtitle-modern mt-6"
         >
-          Benvenuti a Boccaccio
-        </motion.span>
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="text-6xl md:text-8xl lg:text-9xl font-semibold mb-8 tracking-tighter leading-none"
-        >
-          Autentická
-          <br />
-          Talianska Chuť
-        </motion.h1>
-      </div>
+          {t("hero.subtitle")}
+        </motion.p>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10"
-      >
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[10px] uppercase tracking-[0.3em] font-medium opacity-50">Spoznajte nás</span>
-          <div className="w-px h-12 bg-gradient-to-b from-primary to-transparent" />
-        </div>
-      </motion.div>
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.1 }}
+          className="flex flex-col sm:flex-row gap-4 mt-8"
+        >
+          <a
+            href="#contact"
+            onClick={(e) => { e.preventDefault(); scrollToSection("#contact"); }}
+            className="hero-btn-primary"
+            data-testid="hero-cta-contact"
+          >
+            {t("hero.ctaContact")}
+          </a>
+          <button
+            onClick={() => scrollToSection("#menu")}
+            className="hero-btn-secondary"
+            data-testid="hero-cta-menu"
+          >
+            {t("nav.menu")}
+          </button>
+        </motion.div>
+      </div>
     </section>
   );
 };
 
+// About Section
 const AboutSection = () => {
   const { t } = useLanguage();
 
   return (
-    <section id="about" className="py-24 md:py-32 bg-background overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-20 items-center">
+    <section id="about" className="py-24 md:py-32 relative paper-texture" data-testid="about-section">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <AnimatedSection className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+          {/* Image */}
+          <motion.div
+            variants={scaleIn}
+            className="relative aspect-[4/5] overflow-hidden rounded-sm"
+          >
+            <img
+              src="https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/zb6k4fi9_fotka%20oreste.jpg"
+              alt="Boccacio Restaurant Team"
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+
+          {/* Content */}
+          <div className="space-y-8">
+            <motion.div variants={fadeInUp}>
+              <span className="about-tradition-text-readable">{t("about.subtitle")}</span>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <h2 className="about-title">
+                {t("about.title")}
+              </h2>
+            </motion.div>
+
+            <motion.p variants={fadeInUp} className="text-lg text-muted-foreground leading-relaxed">
+              {t("about.description")}
+            </motion.p>
+
+            <motion.p variants={fadeInUp} className="text-muted-foreground leading-relaxed">
+              {t("about.description2")}
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="grid grid-cols-1 gap-4 pt-6">
+              {["feature1", "feature2", "feature3"].map((feature, i) => (
+                <div key={feature} className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold">{i + 1}</span>
+                  </div>
+                  <p className="font-medium text-foreground">{t(`about.${feature}`)}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </AnimatedSection>
+
+        {/* Naše jedlá section - REMOVED, moved to separate component */}
+      </div>
+    </section>
+  );
+};
+
+// Naše Jedlá Section (Our Dishes description)
+const NaseJedlaSection = () => {
+  const { t } = useLanguage();
+  
+  const foodFeatures = [
+    { icon: '🍕', key: 'pizza' },
+    { icon: '🍲', key: 'soups' },
+    { icon: '🥓', key: 'appetizers' },
+    { icon: '🍝', key: 'pasta' },
+    { icon: '🥩', key: 'meat' },
+    { icon: '🐟', key: 'fish' },
+    { icon: '🍰', key: 'desserts' },
+  ];
+
+  return (
+    <section id="nase-jedla" className="py-24 md:py-32 relative paper-texture" data-testid="nase-jedla-section">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
         <AnimatedSection>
+          <motion.div variants={fadeInUp} className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-semibold text-foreground">{t("naseJedla.title")}</h3>
+          </motion.div>
+          
+          <motion.div variants={fadeInUp} className="food-features-grid">
+            {foodFeatures.map((item, index) => (
+              <div key={index} className="food-feature-item">
+                <span className="food-feature-icon">{item.icon}</span>
+                <p className="food-feature-text">{t(`naseJedla.${item.key}`)}</p>
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.div variants={fadeInUp} className="mt-8 text-center">
+            <p className="food-features-note">
+              {t("naseJedla.note")}
+            </p>
+          </motion.div>
+        </AnimatedSection>
+      </div>
+    </section>
+  );
+};
+
+// Interior Section
+const InteriorSection = () => {
+  const { t } = useLanguage();
+
+  // Interior photos - 10 photos
+  const interiorImages = [
+    { id: 'int-1', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/3l2mpjr2_1.jpg', alt: 'Kniha hostí s Audrey Hepburn' },
+    { id: 'int-2', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/f26esfpr_2.jpg', alt: 'Elegantný príborník s vínami' },
+    { id: 'int-3', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/y82dxmf1_3.jpg', alt: 'Víno Sassicaia' },
+    { id: 'int-4', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/gk6jypa4_4.jpg', alt: 'Hlavná jedáleň s oblúkmi' },
+    { id: 'int-5', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/dn70my6a_5.jpg', alt: 'Prosciutto a dekorácie' },
+    { id: 'int-6', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/sblun0zv_6.jpg', alt: 'Elegantné stolovanie pod oblúkom' },
+    { id: 'int-7', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/vsxu8hl7_7.jpg', alt: 'Renoir obraz a antický nábytok' },
+    { id: 'int-8', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/zyx80dbz_8.jpg', alt: 'Slávnostná sála s lustrom' },
+    { id: 'int-9', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/falqavns_9.jpg', alt: 'Dlhý stôl pre oslavy' },
+    { id: 'int-10', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/a2xjc6hs_10.jpg', alt: 'Romantické stolovanie s kryštálmi' },
+  ];
+
+  return (
+    <section id="interior" className="py-24 md:py-32 bg-muted/30" data-testid="interior-section">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <AnimatedSection className="text-center mb-16">
           <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
-            {t("about.subtitle")}
+            {t("interior.subtitle")}
           </motion.span>
           <motion.h2
             variants={fadeInUp}
-            className="text-4xl md:text-6xl font-semibold mt-2 mb-8 tracking-tight text-foreground"
+            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
           >
-            {t("about.title")}
+            {t("interior.title")}
           </motion.h2>
-          <motion.p
-            variants={fadeInUp}
-            className="text-lg text-muted-foreground leading-relaxed mb-8"
-          >
-            {t("about.description")}
-          </motion.p>
         </AnimatedSection>
 
-        <div className="relative">
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="aspect-[4/5] bg-[url('https://images.unsplash.com/photo-1551183053-bf91a1d81141?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')] bg-cover bg-center rounded-sm"
-          />
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const InteriorSection = () => {
-  const { t } = useLanguage();
-  return (
-    <section id="interior" className="py-24 md:py-32 bg-muted/20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div className="order-2 lg:order-1">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="aspect-video lg:aspect-square bg-[url('https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')] bg-cover bg-center rounded-sm"
-            />
-          </div>
-          <AnimatedSection className="order-1 lg:order-2">
-            <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
-              Atmosféra
-            </motion.span>
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-semibold mt-2 mb-6 tracking-tight">
-              Elegantný Interiér
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-muted-foreground leading-relaxed">
-              Naša reštaurácia ponúka štýlové prostredie, ktoré spája moderný dizajn s tradičnými talianskymi prvkami. Ideálne miesto pre romantickú večeru aj rodinnú oslavu.
-            </motion.p>
-          </AnimatedSection>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const WinterGardenSection = () => {
-  return (
-    <section id="garden" className="py-24 md:py-32 bg-background overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <AnimatedSection>
-            <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
-              Oáza pokoja
-            </motion.span>
-            <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-semibold mt-2 mb-6 tracking-tight">
-              Zimná Záhrada
-            </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-muted-foreground leading-relaxed">
-              Vychutnajte si svoje obľúbené jedlo v našej presvetlenej zimnej záhrade, ktorá je v prevádzke počas celého roka. Ponúka jedinečný výhľad a relaxačnú atmosféru.
-            </motion.p>
-          </AnimatedSection>
-          <div className="relative">
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="aspect-video bg-[url('https://images.unsplash.com/photo-1544148103-0773bf10d330?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')] bg-cover bg-center rounded-sm"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const NaseJedlaSection = () => {
-  return (
-    <section className="py-24 md:py-32 bg-muted/20">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 text-center mb-16">
-        <span className="font-script text-xl text-primary">Gastronómia</span>
-        <h2 className="text-4xl md:text-5xl font-semibold mt-2">Naše Špeciality</h2>
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 max-w-[1600px] mx-auto">
-        {[1, 2, 3, 4].map((i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 0.98 }}
-            className="aspect-square bg-muted overflow-hidden rounded-sm"
-          >
-            <img 
-              src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`} 
-              alt="Food" 
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
-            />
+        <AnimatedSection>
+          <motion.div variants={fadeIn} className="interior-grid" data-testid="interior-grid">
+            {interiorImages.map((image, index) => (
+              <motion.div
+                key={image.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="interior-item"
+                data-testid={`interior-item-${image.id}`}
+              >
+                <img src={image.src} alt={image.alt} className="w-full h-full object-cover" loading="lazy" />
+              </motion.div>
+            ))}
           </motion.div>
-        ))}
+        </AnimatedSection>
       </div>
     </section>
   );
 };
 
+// Food Section (Jedlá)
 const FoodSection = () => {
-  const categories = ["Všetko", "Pizza", "Pasta", "Dezerty"];
-  const [active, setActive] = useState("Všetko");
+  const { t } = useLanguage();
+
+  // Real food photos - 9 photos total
+  const foodImages = [
+    {
+      id: 'food-1',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/2g1axo7z_2.jpg',
+      alt: 'Grilované steaky',
+    },
+    {
+      id: 'food-2',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/2mp23cll_3.jpg',
+      alt: 'Risotto s morskými plodmi',
+    },
+    {
+      id: 'food-3',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/ntkenzfq_5.jpg',
+      alt: 'Cestoviny s cuketou a bazalkou',
+    },
+    {
+      id: 'food-4',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/l82l78b8_6.jpg',
+      alt: 'Grilovaná ryba so zemiakmi',
+    },
+    {
+      id: 'food-5',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/bvnmlvgw_8.jpg',
+      alt: 'Čerstvé ryby a tuniak',
+    },
+    {
+      id: 'food-6',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/c1xq6un7_9.jpg',
+      alt: 'Steak so zeleninou',
+    },
+    {
+      id: 'food-7',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/79l3lc5f_10.jpg',
+      alt: 'Teľacia kotleta',
+    },
+    {
+      id: 'food-8',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/0ppormdd_13.jpg',
+      alt: 'Talianske antipasto',
+    },
+    {
+      id: 'food-9',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/agigipmh_14.jpg',
+      alt: 'Risotto frutti di mare',
+    },
+    {
+      id: 'food-10',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/xkyb4c3o_1.jpg',
+      alt: 'Hovädzie filé s rozmarínom',
+    },
+    {
+      id: 'food-11',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/3waulmsq_2.jpg',
+      alt: 'Tagliatelle s hľuzovkou',
+    },
+    {
+      id: 'food-12',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/omxxyzc9_3.jpg',
+      alt: 'Gnocchi s tekvicou a krevetami',
+    },
+    {
+      id: 'food-13',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/osw9jy9d_4.jpg',
+      alt: 'Zuppa di pesce',
+    },
+    {
+      id: 'food-14',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/ckl2yav9_5.jpg',
+      alt: 'Cozze al pomodoro',
+    },
+    {
+      id: 'food-15',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/tek6ui18_6.jpg',
+      alt: 'Pizza Margherita z pece',
+    },
+    {
+      id: 'food-16',
+      src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/otsl18su_7.jpg',
+      alt: 'Pizza s mortadelou a burratou',
+    },
+  ];
 
   return (
-    <section className="py-24 bg-background">
+    <section id="food" className="py-24 md:py-32 relative paper-texture" data-testid="food-section">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="flex justify-center gap-8 mb-16 overflow-x-auto pb-4">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActive(cat)}
-              className={`text-sm uppercase tracking-widest font-medium transition-all ${active === cat ? "text-primary border-b border-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <AnimatedSection className="text-center mb-16">
+          <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
+            {t("food.subtitle")}
+          </motion.span>
+          <motion.h2
+            variants={fadeInUp}
+            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
+          >
+            {t("food.title")}
+          </motion.h2>
+        </AnimatedSection>
+
+        <AnimatedSection>
+          <motion.div variants={fadeIn} className="food-grid" data-testid="food-grid">
+            {foodImages.map((image, index) => (
+              <motion.div
+                key={image.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
+                whileHover={{ y: -8 }}
+                className="food-item"
+                data-testid={`food-item-${image.id}`}
+              >
+                <img src={image.src} alt={image.alt} loading="lazy" />
+                <div className="food-item-overlay">
+                  <span>{image.alt}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatedSection>
       </div>
     </section>
   );
 };
 
+// Jedálny Lístok Section
 const JedalnyListokSection = () => {
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('pizza');
@@ -557,19 +842,9 @@ const JedalnyListokSection = () => {
   );
 };
 
+// Menu Section - Denné Menu
 const MenuSection = () => {
   const { t } = useLanguage();
-  const [dailyMenu, setDailyMenu] = useState(null);
-
-  useEffect(() => {
-    fetch("https://boccacio11.onrender.com/api/daily-menu")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setDailyMenu(data[0]);
-        else setDailyMenu(data);
-      })
-      .catch(err => console.error("Chyba pri načítavaní menu:", err));
-  }, []);
 
   const pizzaOptions = [
     { name: 'Prosciutto e funghi', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella, šunka, šampiňóny' },
@@ -583,200 +858,398 @@ const MenuSection = () => {
   ];
 
   return (
-    <section id="menu" className="py-24 md:py-32 relative bg-background" data-testid="menu-section">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
+    <section id="menu" className="py-24 md:py-32 bg-muted/30" data-testid="menu-section">
+      <div className="max-w-5xl mx-auto px-6 md:px-12">
         <AnimatedSection className="text-center mb-16">
           <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
             {t("menu.subtitle")}
           </motion.span>
-          <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground">
+          <motion.h2
+            variants={fadeInUp}
+            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
+          >
             {t("menu.title")}
           </motion.h2>
         </AnimatedSection>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* MENU 1 */}
-          <AnimatedSection>
-            <motion.div variants={fadeInUp} className="menu-card featured">
-              <div className="menu-card-badge">{t("menu.dailyBadge")}</div>
-              <h3 className="text-2xl font-semibold mb-4">{t("menu.dailyTitle")}</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <span className="block text-sm uppercase tracking-wider text-primary font-medium mb-1">
-                    {t("menu.soup")}
-                  </span>
-                  <p className="text-lg italic">
-                    {dailyMenu ? dailyMenu.soup : "Načítavam..."}
-                  </p>
-                </div>
-                
-                <div>
-                  <span className="block text-sm uppercase tracking-wider text-primary font-medium mb-1">
-                    {t("menu.mainCourse")}
-                  </span>
-                  <p className="text-lg font-medium leading-tight">
-                    {dailyMenu ? dailyMenu.mainCourse : "Načítavam..."}
-                  </p>
-                </div>
+        <div className="space-y-8">
+          {/* Menu č.1 */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="daily-menu-card"
+          >
+            <div className="daily-menu-header">
+              <h3 className="daily-menu-title">Menu č.1</h3>
+              <span className="daily-menu-price">8,90 €</span>
+            </div>
+            <div className="daily-menu-content">
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Polievka</span>
+                <span className="daily-menu-value">Slepačí vývar / Výber z dvoch polievok</span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Hlavné jedlo</span>
+                <span className="daily-menu-value">Filet z morského vlka na južanský spôsob <span className="allergen-small">/4/</span></span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Príloha</span>
+                <span className="daily-menu-value">Zemiakovo hráškové pyré <span className="allergen-small">/7/</span></span>
+              </div>
+            </div>
+          </motion.div>
 
-                <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
-                   <span className="text-2xl font-bold text-primary">
-                     {dailyMenu ? dailyMenu.price : "8,90 €"}
-                   </span>
-                   <span className="text-xs text-muted-foreground uppercase">Po-Pi 11:00 - 14:00</span>
+          {/* Menu č.2 - Pizza */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="daily-menu-card"
+          >
+            <div className="daily-menu-header">
+              <h3 className="daily-menu-title">Menu č.2 - Pizza menu</h3>
+              <span className="daily-menu-price">8,90 €</span>
+            </div>
+            <div className="daily-menu-content">
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Polievka</span>
+                <span className="daily-menu-value">Výber z 2 polievok</span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Hlavné jedlo</span>
+                <span className="daily-menu-value">Výber z 8 druhov veľkej pizze:</span>
+              </div>
+            </div>
+            
+            <div className="pizza-options-grid">
+              {pizzaOptions.map((pizza, index) => (
+                <div key={index} className="pizza-option">
+                  <div className="pizza-option-header">
+                    <span className="pizza-number">{index + 1}.</span>
+                    <span className="pizza-name">{pizza.name}</span>
+                    <span className="pizza-allergens">{pizza.allergens}</span>
+                  </div>
+                  <p className="pizza-desc">{pizza.desc}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Menu č.3 */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="daily-menu-card"
+          >
+            <div className="daily-menu-header">
+              <h3 className="daily-menu-title">Menu č.3</h3>
+              <span className="daily-menu-price">8,50 €</span>
+            </div>
+            <div className="daily-menu-content">
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Polievka</span>
+                <span className="daily-menu-value">Výber z dvoch polievok</span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Hlavné jedlo</span>
+                <span className="daily-menu-value">Šalát Pollo</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// Gallery Section
+// Winter Garden Section
+const WinterGardenSection = () => {
+  const { t } = useLanguage();
+
+  // Winter garden photos - 7 photos
+  const winterGardenImages = [
+    { id: 'wg-1', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/hkmwdsh7_1.jpg', alt: 'Zimná záhrada s olivovníkom' },
+    { id: 'wg-2', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/ihg2mxmg_2.jpg', alt: 'Terasa s tehlami' },
+    { id: 'wg-3', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/nsdgks27_3.jpg', alt: 'Večerná atmosféra' },
+    { id: 'wg-4', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/ct5ecy86_4.jpg', alt: 'Posedenie pod strechou' },
+    { id: 'wg-5', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/5x1wd9c0_5.jpg', alt: 'Lampáše a sviečky' },
+    { id: 'wg-6', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/vitaftqg_6.jpg', alt: 'Romantický kútik so slnkom' },
+    { id: 'wg-7', src: 'https://customer-assets.emergentagent.com/job_boccaccio-nitra/artifacts/jy72c0z0_7.jpg', alt: 'Elegantné stolovanie' },
+  ];
+
+  return (
+    <section id="winter-garden" className="py-24 md:py-32 bg-muted/30 overflow-hidden" data-testid="winter-garden-section">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <AnimatedSection className="text-center mb-16">
+          <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
+            {t("winterGarden.subtitle")}
+          </motion.span>
+          <motion.h2
+            variants={fadeInUp}
+            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
+          >
+            {t("winterGarden.title")}
+          </motion.h2>
+          <motion.p variants={fadeInUp} className="text-muted-foreground mt-4 max-w-2xl mx-auto">
+            {t("winterGarden.description")}
+          </motion.p>
+        </AnimatedSection>
+
+        {/* Masonry Gallery with Parallax Effects */}
+        <div className="wg-masonry-grid" data-testid="winter-garden-grid">
+          {winterGardenImages.map((image, index) => (
+            <motion.div
+              key={image.id}
+              initial={{ opacity: 0, y: 60, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ 
+                duration: 0.7, 
+                delay: (index % 5) * 0.1,
+                ease: [0.25, 0.46, 0.45, 0.94]
+              }}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className={`wg-masonry-item wg-item-${index + 1}`}
+              data-testid={`winter-garden-item-${image.id}`}
+            >
+              <div className="wg-image-wrapper">
+                <motion.img 
+                  src={image.src} 
+                  alt={image.alt} 
+                  loading="lazy"
+                  whileHover={{ scale: 1.08 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+                <div className="wg-image-overlay">
+                  <span className="wg-image-caption">{image.alt}</span>
                 </div>
               </div>
             </motion.div>
-          </AnimatedSection>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
-          {/* MENU 2 - PIZZA */}
-          <AnimatedSection>
-            <motion.div variants={fadeInUp} className="menu-card">
-              <h3 className="text-2xl font-semibold mb-4">Menu č.2 - Pizza</h3>
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {pizzaOptions.map((item, index) => (
-                  <div key={index} className="border-b border-primary/5 pb-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <h4 className="font-medium text-sm">{index + 1}. {item.name}</h4>
-                      <span className="text-[10px] text-muted-foreground">{item.allergens}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-tight mt-1">{item.desc}</p>
+// Contact Section
+const ContactSection = () => {
+  const { t } = useLanguage();
+
+  const contactInfo = [
+    {
+      icon: MapPin,
+      label: t("contact.address"),
+      value: "Farská 36, 949 01 Nitra",
+      href: "https://maps.google.com/?q=Farská+36+Nitra",
+    },
+    {
+      icon: Phone,
+      label: t("contact.phone"),
+      value: "+421 903 444 964",
+      href: "tel:+421903444964",
+    },
+    {
+      icon: Mail,
+      label: t("contact.email"),
+      value: "boccaccio@boccaccio.sk",
+      href: "mailto:boccaccio@boccaccio.sk",
+    },
+  ];
+
+  const hours = [
+    { day: t("contact.monday"), time: "11:00 – 23:00" },
+    { day: t("contact.tuesday"), time: "11:00 – 23:00" },
+    { day: t("contact.wednesday"), time: "11:00 – 23:00" },
+    { day: t("contact.thursday"), time: "11:00 – 23:00" },
+    { day: t("contact.friday"), time: "11:00 – 23:00" },
+    { day: t("contact.saturday"), time: "11:00 – 23:00" },
+    { day: t("contact.sunday"), time: t("contact.closed") },
+  ];
+
+  return (
+    <section id="contact" className="py-24 md:py-32 bg-muted/30" data-testid="contact-section">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <AnimatedSection className="text-center mb-16">
+          <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
+            {t("contact.subtitle")}
+          </motion.span>
+          <motion.h2
+            variants={fadeInUp}
+            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
+          >
+            {t("contact.title")}
+          </motion.h2>
+        </AnimatedSection>
+
+        <AnimatedSection className="grid md:grid-cols-2 gap-8">
+          {/* Map Placeholder */}
+          <motion.div
+            variants={fadeInUp}
+            className="aspect-square md:aspect-auto md:h-full min-h-[400px] rounded-sm overflow-hidden"
+          >
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2657.8!2d18.0873!3d48.3069!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x476b3ed8bb9a1d7d%3A0x0!2sFarsk%C3%A1%2036%2C%20949%2001%20Nitra!5e0!3m2!1sen!2ssk!4v1700000000000"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Boccaccio Location"
+            />
+          </motion.div>
+
+          {/* Contact Info */}
+          <motion.div variants={fadeInUp} className="space-y-6">
+            {/* Contact Cards */}
+            {contactInfo.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                target={item.href.startsWith("http") ? "_blank" : undefined}
+                rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="contact-card flex items-center gap-4 p-5 rounded-sm"
+                data-testid={`contact-${item.label.toLowerCase()}`}
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                  <p className="font-medium text-foreground">{item.value}</p>
+                </div>
+              </a>
+            ))}
+
+            {/* Opening Hours */}
+            <div className="contact-card p-5 rounded-sm">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+                <p className="font-medium text-foreground">{t("contact.hours")}</p>
+              </div>
+              <div className="space-y-2 pl-16">
+                {hours.map((h) => (
+                  <div key={h.day} className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{h.day}</span>
+                    <span className={`font-medium ${h.time === t("contact.closed") ? "text-destructive" : "text-foreground"}`}>
+                      {h.time}
+                    </span>
                   </div>
                 ))}
               </div>
-              <div className="pt-4 mt-4 border-t border-primary/10 flex justify-between items-center">
-                 <span className="text-2xl font-bold text-primary">8,90 €</span>
-                 <span className="text-xs text-muted-foreground uppercase">Vrátane polievky</span>
-              </div>
-            </motion.div>
-          </AnimatedSection>
+            </div>
 
-          {/* MENU 3 - SALAT */}
-          <AnimatedSection>
-            <motion.div variants={fadeInUp} className="menu-card">
-              <h3 className="text-2xl font-semibold mb-4">Menu č.3 - Šalát</h3>
-              <div className="space-y-4">
-                <div>
-                  <span className="block text-sm uppercase tracking-wider text-primary font-medium mb-1">
-                    Insalata di Pollo
-                  </span>
-                  <p className="text-muted-foreground text-sm">
-                    Listový šalát, paradajky, olivy, grilované kuracie mäso, bylinkový dressing, opečený toast
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
-                   <span className="text-2xl font-bold text-primary">8,50 €</span>
-                   <span className="text-xs text-muted-foreground uppercase">Vrátane polievky</span>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatedSection>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const ContactSection = () => {
-  const { t } = useLanguage();
-  return (
-    <section id="contact" className="py-24 md:py-32 bg-muted/20">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid lg:grid-cols-2 gap-16 items-start">
-          <AnimatedSection>
-            <h2 className="text-4xl md:text-5xl font-semibold mb-8 tracking-tight">{t("contact.title")}</h2>
-            <div className="space-y-8">
-              <div className="flex items-start gap-4">
-                <MapPin className="text-primary mt-1" />
-                <div>
-                  <h4 className="font-semibold mb-1">{t("contact.addressTitle")}</h4>
-                  <p className="text-muted-foreground">{t("contact.address")}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <Phone className="text-primary mt-1" />
-                <div>
-                  <h4 className="font-semibold mb-1">{t("contact.phoneTitle")}</h4>
-                  <a href="tel:+421915744443" className="text-muted-foreground hover:text-primary transition-colors">+421 915 744 443</a>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <Clock className="text-primary mt-1" />
-                <div>
-                  <h4 className="font-semibold mb-1">{t("contact.hoursTitle")}</h4>
-                  <p className="text-muted-foreground whitespace-pre-line">{t("contact.hours")}</p>
-                </div>
+            {/* Social Links */}
+            <div className="pt-4">
+              <p className="text-sm text-muted-foreground mb-4">{t("contact.followUs")}</p>
+              <div className="flex gap-4">
+                <a
+                  href="https://www.instagram.com/boccaccio_restauracia_nitra"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-link instagram"
+                  data-testid="social-instagram"
+                >
+                  <Instagram className="w-6 h-6" />
+                </a>
+                <a
+                  href="https://www.facebook.com/boccaccio.restauracia/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-link facebook"
+                  data-testid="social-facebook"
+                >
+                  <Facebook className="w-6 h-6" />
+                </a>
               </div>
             </div>
-          </AnimatedSection>
-          
-          <div className="h-[450px] bg-muted rounded-sm overflow-hidden shadow-xl grayscale hover:grayscale-0 transition-all duration-700">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2625.347589258249!2d18.2618!3d48.7188!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDjCsDQzJzA3LjciTiAxOMKwMTUnNDIuNSJF!5e0!3m2!1ssk!2ssk!4v1620000000000!5m2!1ssk!2ssk" 
-              width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"
-            ></iframe>
-          </div>
-        </div>
+          </motion.div>
+        </AnimatedSection>
       </div>
     </section>
   );
 };
 
+// Footer
 const Footer = () => {
   const { t } = useLanguage();
   const currentYear = new Date().getFullYear();
+
   return (
-    <footer className="py-12 bg-foreground text-background">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
-        <h3 className="text-2xl font-semibold mb-6">BOCCACCIO</h3>
-        <p className="text-sm opacity-60">© {currentYear} Boccaccio. Všetky práva vyhradené.</p>
+    <footer className="footer py-12" data-testid="footer">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <h3 className="text-2xl font-semibold text-background mb-1">BOCCACCIO</h3>
+            <p className="text-sm text-background/60">{t("footer.madeWith")}</p>
+          </div>
+          <p className="text-sm text-background/60">
+            © {currentYear} Boccaccio. {t("footer.rights")}.
+          </p>
+        </div>
       </div>
     </footer>
   );
 };
 
+// Main App Component
 const MainApp = () => {
   useEffect(() => {
-    const lenis = new Lenis();
+    // Initialize Lenis smooth scroll
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: "vertical",
+      gestureDirection: "vertical",
+      smooth: true,
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
+
     requestAnimationFrame(raf);
-    return () => lenis.destroy();
+
+    return () => {
+      lenis.destroy();
+    };
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative" data-testid="boccacio-app">
       <Navigation />
-      <Routes>
-        <Route path="/" element={
-          <>
-            <HeroSection />
-            <AboutSection />
-            <InteriorSection />
-            <WinterGardenSection />
-            <NaseJedlaSection />
-            <FoodSection />
-            <JedalnyListokSection />
-            <MenuSection />
-            <ContactSection />
-            <Footer />
-          </>
-        } />
-        <Route path="/admin" element={<AdminPanel />} />
-      </Routes>
+      <HeroSection />
+      <AboutSection />
+      <InteriorSection />
+      <WinterGardenSection />
+      <NaseJedlaSection />
+      <FoodSection />
+      <JedalnyListokSection />
+      <MenuSection />
+      <ContactSection />
+      <Footer />
     </div>
   );
 };
 
-export default function App() {
+function App() {
   return (
     <LanguageProvider>
-      <Router>
-        <MainApp />
-      </Router>
+      <MainApp />
     </LanguageProvider>
   );
 }
+
+export default App;
