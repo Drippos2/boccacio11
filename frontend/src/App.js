@@ -1200,10 +1200,10 @@ const Footer = () => {
   );
 };
 
-// Main App Component
+// --- HLAVNÝ KOMPONENT ---
 const MainApp = () => {
   useEffect(() => {
-    // Initialize Lenis smooth scroll
+    // Inicializácia Lenis (hladké skrolovanie)
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -1227,40 +1227,39 @@ const MainApp = () => {
   }, []);
 
   return (
-    <Router>
-      <div className="relative" data-testid="boccacio-app">
-        <Routes>
-          {/* HLAVNÁ STRÁNKA */}
-          <Route path="/" element={
-            <>
-              <Navigation />
-              <HeroSection />
-              <AboutSection />
-              <InteriorSection />
-              <WinterGardenSection />
-              <NaseJedlaSection />
-              <FoodSection />
-              <JedalnyListokSection />
-              <MenuSection />
-              <ContactSection />
-              <Footer />
-            </>
-          } />
+    <div className="relative" data-testid="boccacio-app">
+      <Navigation />
+      <Routes>
+        {/* HLAVNÁ STRÁNKA */}
+        <Route path="/" element={
+          <>
+            <HeroSection />
+            <AboutSection />
+            <InteriorSection />
+            <WinterGardenSection />
+            <NaseJedlaSection />
+            <FoodSection />
+            <JedalnyListokSection />
+            <MenuSection />
+            <ContactSection />
+            <Footer />
+          </>
+        } />
 
-          {/* ADMIN PANEL */}
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </div>
-    </Router>
+        {/* ADMIN PANEL */}
+        <Route path="/admin" element={<AdminPanel />} />
+      </Routes>
+    </div>
   );
 };
 
-function App() {
+// TOTO JE TO NAJDÔLEŽITEJŠIE - EXPORT A WRAPPERS
+export default function App() {
   return (
     <LanguageProvider>
-      <MainApp />
+      <Router>
+        <MainApp />
+      </Router>
     </LanguageProvider>
   );
 }
-
-export default App;
