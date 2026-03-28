@@ -1,13 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import "./App.css";
+import "@/App.css";
 import { LanguageProvider, useLanguage, languages } from "./context/LanguageContext";
 import { menuData, galleryImages } from "./data/menuData";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Lenis from "@studio-freight/lenis";
 import { Instagram, Facebook, Phone, Mail, MapPin, Clock, ChevronDown, Menu, X } from "lucide-react";
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminPanel from "./AdminPanel";
 
 // Animation variants
 const fadeInUp = {
@@ -64,13 +61,13 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { key: "about", href: "#about", label: "O nás" },
-    { key: "interior", href: "#interior", label: "Interiér" },
-    { key: "winterGarden", href: "#winter-garden", label: "Exteriér" },
-    { key: "food", href: "#food", label: "Jedlá" },
-    { key: "jedalnyListok", href: "#jedalny-listok", label: "Jedálny lístok" },
-    { key: "menu", href: "#menu", label: "Denné menu" },
-    { key: "contact", href: "#contact", label: "Kontakt" },
+    { key: "about", href: "#about" },
+    { key: "interior", href: "#interior" },
+    { key: "winterGarden", href: "#winter-garden" },
+    { key: "food", href: "#food" },
+    { key: "jedalnyListok", href: "#jedalny-listok" },
+    { key: "menu", href: "#menu" },
+    { key: "contact", href: "#contact" },
   ];
 
   const scrollToSection = (href) => {
@@ -100,7 +97,26 @@ const Navigation = () => {
                 className="hero-nav-link"
                 data-testid={`hero-nav-${item.key}`}
               >
-                {item.label}
+                {t(`nav.${item.key}`)}
+              </button>
+            ))}
+          </div>
+          
+          {/* Language Flags */}
+          <div className="hero-nav-flags">
+            {Object.values(languages).map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                className={`hero-flag-btn ${language === lang.code ? "active" : ""}`}
+                data-testid={`lang-${lang.code}`}
+                title={lang.name}
+              >
+                <img 
+                  src={lang.flagUrl} 
+                  alt={lang.name}
+                  className="w-6 h-4 object-cover rounded-sm"
+                />
               </button>
             ))}
           </div>
@@ -127,7 +143,7 @@ const Navigation = () => {
                 className="scrolled-nav-link"
                 data-testid={`nav-${item.key}`}
               >
-                {item.label}
+                {t(`nav.${item.key}`)}
               </button>
             ))}
           </div>
@@ -176,9 +192,30 @@ const Navigation = () => {
                 onClick={() => scrollToSection(item.href)}
                 className="mobile-menu-link"
               >
-                {item.label}
+                {t(`nav.${item.key}`)}
               </button>
             ))}
+
+            {/* Language Flags in Mobile Menu */}
+            <div className="flex items-center gap-3 mt-8">
+              {Object.values(languages).map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`lang-flag-btn ${language === lang.code ? "active" : ""}`}
+                  title={lang.name}
+                >
+                  <img 
+                    src={lang.flagUrl} 
+                    alt={lang.name}
+                    className="w-8 h-5 object-cover rounded-sm"
+                  />
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -313,7 +350,7 @@ const HeroSection = () => {
             className="hero-btn-secondary"
             data-testid="hero-cta-menu"
           >
-            DENNÉ MENU
+            {t("nav.menu")}
           </button>
         </motion.div>
       </div>
@@ -382,14 +419,16 @@ const AboutSection = () => {
 
 // Naše Jedlá Section (Our Dishes description)
 const NaseJedlaSection = () => {
+  const { t } = useLanguage();
+  
   const foodFeatures = [
-    { icon: '🍕', text: 'Široký výber pizze pečenej v originálnej peci na drevo' },
-    { icon: '🍲', text: 'Polievky slovenské a talianske' },
-    { icon: '🥓', text: 'Predjedlá z talianskej šunky Parma, San Daniele, salámy a syry' },
-    { icon: '🍝', text: 'Domáce cestoviny podľa talianskych tradičných receptúr' },
-    { icon: '🥩', text: 'Hlavné jedlá z bravčového, kuracieho, hovädzieho, T-bone a Tomahawk steaky' },
-    { icon: '🐟', text: 'Špeciality z morských rýb a plodov mora' },
-    { icon: '🍰', text: 'Tradičné talianske dezerty' },
+    { icon: '🍕', key: 'pizza' },
+    { icon: '🍲', key: 'soups' },
+    { icon: '🥓', key: 'appetizers' },
+    { icon: '🍝', key: 'pasta' },
+    { icon: '🥩', key: 'meat' },
+    { icon: '🐟', key: 'fish' },
+    { icon: '🍰', key: 'desserts' },
   ];
 
   return (
@@ -397,21 +436,21 @@ const NaseJedlaSection = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <AnimatedSection>
           <motion.div variants={fadeInUp} className="text-center mb-12">
-            <h3 className="text-3xl md:text-4xl font-semibold text-foreground">Naše jedlá</h3>
+            <h3 className="text-3xl md:text-4xl font-semibold text-foreground">{t("naseJedla.title")}</h3>
           </motion.div>
           
           <motion.div variants={fadeInUp} className="food-features-grid">
             {foodFeatures.map((item, index) => (
               <div key={index} className="food-feature-item">
                 <span className="food-feature-icon">{item.icon}</span>
-                <p className="food-feature-text">{item.text}</p>
+                <p className="food-feature-text">{t(`naseJedla.${item.key}`)}</p>
               </div>
             ))}
           </motion.div>
 
           <motion.div variants={fadeInUp} className="mt-8 text-center">
             <p className="food-features-note">
-              Všetky jedlá sú vyrobené z čerstvých talianskych originálnych surovín a ingrediencií
+              {t("naseJedla.note")}
             </p>
           </motion.div>
         </AnimatedSection>
@@ -606,20 +645,21 @@ const FoodSection = () => {
 
 // Jedálny Lístok Section
 const JedalnyListokSection = () => {
+  const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState('pizza');
 
   const menuCategories = [
-    { id: 'pizza', name: 'Pizza', icon: '🍕' },
-    { id: 'zuppe', name: 'Polievky', icon: '🥣' },
-    { id: 'antipasti', name: 'Predjedlá', icon: '🥗' },
-    { id: 'pasta', name: 'Cestoviny', icon: '🍝' },
-    { id: 'risotti', name: 'Rizotá', icon: '🍚' },
-    { id: 'carne', name: 'Mäso', icon: '🥩' },
-    { id: 'pesce', name: 'Ryby', icon: '🐟' },
-    { id: 'insalate', name: 'Šaláty', icon: '🥬' },
-    { id: 'contorni', name: 'Prílohy', icon: '🥔' },
-    { id: 'desert', name: 'Dezerty', icon: '🍰' },
-    { id: 'napoje', name: 'Nápoje', icon: '🍷' },
+    { id: 'pizza', icon: '🍕' },
+    { id: 'zuppe', icon: '🥣' },
+    { id: 'antipasti', icon: '🥗' },
+    { id: 'pasta', icon: '🍝' },
+    { id: 'risotti', icon: '🍚' },
+    { id: 'carne', icon: '🥩' },
+    { id: 'pesce', icon: '🐟' },
+    { id: 'insalate', icon: '🥬' },
+    { id: 'contorni', icon: '🥔' },
+    { id: 'desert', icon: '🍰' },
+    { id: 'napoje', icon: '🍷' },
   ];
 
   const menuItems = {
@@ -727,13 +767,13 @@ const JedalnyListokSection = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <AnimatedSection className="text-center mb-16">
           <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
-            Naša ponuka
+            {t("jedalnyListok.subtitle")}
           </motion.span>
           <motion.h2
             variants={fadeInUp}
             className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
           >
-            Jedálny lístok
+            {t("jedalnyListok.title")}
           </motion.h2>
         </AnimatedSection>
 
@@ -751,7 +791,7 @@ const JedalnyListokSection = () => {
               className={`menu-category-tab ${activeCategory === cat.id ? 'active' : ''}`}
             >
               <span className="menu-category-icon">{cat.icon}</span>
-              <span className="menu-category-name">{cat.name}</span>
+              <span className="menu-category-name">{t(`jedalnyListok.categories.${cat.id}`)}</span>
             </button>
           ))}
         </motion.div>
@@ -778,7 +818,7 @@ const JedalnyListokSection = () => {
               </div>
               <p className="menu-item-desc">{item.desc}</p>
               {item.allergens && (
-                <span className="menu-item-allergens">Alergény: {item.allergens}</span>
+                <span className="menu-item-allergens">{t("jedalnyListok.allergens")}: {item.allergens}</span>
               )}
             </motion.div>
           ))}
@@ -791,43 +831,20 @@ const JedalnyListokSection = () => {
           viewport={{ once: true }}
           className="mt-12 text-center text-sm text-muted-foreground"
         >
-          <p className="mb-2 font-medium">Zoznam alergénov:</p>
+          <p className="mb-2 font-medium">{t("jedalnyListok.allergensNote")}</p>
           <p className="max-w-4xl mx-auto leading-relaxed">
-            1-Lepok, 2-Kôrovce, 3-Vajcia, 4-Ryby, 5-Arašidy, 6-Sója, 7-Mlieko, 8-Orechy, 9-Zeler, 10-Horčica, 11-Sezam, 12-Siričitany, 13-Vlčí bôb, 14-Mäkkýše
+            {t("jedalnyListok.allergensInfo")}
           </p>
-          <p className="mt-4 italic">Pripravujeme pizzu z bezlepkovej múky na požiadanie.</p>
+          <p className="mt-4 italic">{t("jedalnyListok.glutenFree")}</p>
         </motion.div>
       </div>
     </section>
   );
 };
 
-// Menu Section - Denné Menu (PREPOJENÉ NA ADMINA)
+// Menu Section - Denné Menu
 const MenuSection = () => {
   const { t } = useLanguage();
-  
-  // SEM pridávame stav pre dáta z databázy
-  const [dailyData, setDailyData] = useState({
-    soup: "Načítavam...",
-    mainCourse: "Načítavam...",
-    price: "8,90 €"
-  });
-
-  // Efekt na načítanie dát zo servera
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const response = await fetch("https://boccacio11.onrender.com/api/daily-menu");
-        const data = await response.json();
-        if (data && !data.detail) { // Ak dáta existujú a nie je to error
-          setDailyData(data);
-        }
-      } catch (err) {
-        console.error("Chyba pri sťahovaní menu z backendu:", err);
-      }
-    };
-    fetchMenu();
-  }, []);
 
   const pizzaOptions = [
     { name: 'Prosciutto e funghi', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella, šunka, šampiňóny' },
@@ -856,7 +873,7 @@ const MenuSection = () => {
         </AnimatedSection>
 
         <div className="space-y-8">
-          {/* Menu č.1 - DYNAMICKÉ Z ADMINA */}
+          {/* Menu č.1 */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -866,21 +883,25 @@ const MenuSection = () => {
           >
             <div className="daily-menu-header">
               <h3 className="daily-menu-title">Menu č.1</h3>
-              <span className="daily-menu-price">{dailyData.price}</span>
+              <span className="daily-menu-price">8,90 €</span>
             </div>
             <div className="daily-menu-content">
               <div className="daily-menu-item">
                 <span className="daily-menu-label">Polievka</span>
-                <span className="daily-menu-value">{dailyData.soup}</span>
+                <span className="daily-menu-value">Slepačí vývar / Výber z dvoch polievok</span>
               </div>
               <div className="daily-menu-item">
                 <span className="daily-menu-label">Hlavné jedlo</span>
-                <span className="daily-menu-value">{dailyData.mainCourse}</span>
+                <span className="daily-menu-value">Filet z morského vlka na južanský spôsob <span className="allergen-small">/4/</span></span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Príloha</span>
+                <span className="daily-menu-value">Zemiakovo hráškové pyré <span className="allergen-small">/7/</span></span>
               </div>
             </div>
           </motion.div>
 
-          {/* Menu č.2 - Pizza (Zostáva statické) */}
+          {/* Menu č.2 - Pizza */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -917,7 +938,7 @@ const MenuSection = () => {
             </div>
           </motion.div>
 
-          {/* Menu č.3 - Šalát (Zostáva statické) */}
+          {/* Menu č.3 */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1180,8 +1201,10 @@ const Footer = () => {
   );
 };
 
+// Main App Component
 const MainApp = () => {
   useEffect(() => {
+    // Initialize Lenis smooth scroll
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -1198,35 +1221,26 @@ const MainApp = () => {
     }
 
     requestAnimationFrame(raf);
-    return () => lenis.destroy();
+
+    return () => {
+      lenis.destroy();
+    };
   }, []);
 
   return (
-    <Router>
-      <div className="relative" data-testid="boccacio-app">
-        <Routes>
-          {/* HLAVNÁ STRÁNKA */}
-          <Route path="/" element={
-            <>
-              <Navigation />
-              <HeroSection />
-              <AboutSection />
-              <InteriorSection />
-              <WinterGardenSection />
-              <NaseJedlaSection />
-              <FoodSection />
-              <JedalnyListokSection />
-              <MenuSection />
-              <ContactSection />
-              <Footer />
-            </>
-          } />
-
-          {/* ADMIN PANEL */}
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </div>
-    </Router>
+    <div className="relative" data-testid="boccacio-app">
+      <Navigation />
+      <HeroSection />
+      <AboutSection />
+      <InteriorSection />
+      <WinterGardenSection />
+      <NaseJedlaSection />
+      <FoodSection />
+      <JedalnyListokSection />
+      <MenuSection />
+      <ContactSection />
+      <Footer />
+    </div>
   );
 };
 
