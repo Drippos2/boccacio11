@@ -6,9 +6,6 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import Lenis from "@studio-freight/lenis";
 import { Instagram, Facebook, Phone, Mail, MapPin, Clock, ChevronDown, Menu, X } from "lucide-react";
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminPanel from "./AdminPanel";
-
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -876,7 +873,7 @@ const MenuSection = () => {
         </AnimatedSection>
 
         <div className="space-y-8">
-          {/* Menu č.1 - DYNAMICKÉ Z ADMINA */}
+          {/* Menu č.1 */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -886,16 +883,20 @@ const MenuSection = () => {
           >
             <div className="daily-menu-header">
               <h3 className="daily-menu-title">Menu č.1</h3>
-              <span className="daily-menu-price">{dailyData.price}</span>
+              <span className="daily-menu-price">8,90 €</span>
             </div>
             <div className="daily-menu-content">
               <div className="daily-menu-item">
                 <span className="daily-menu-label">Polievka</span>
-                <span className="daily-menu-value">{dailyData.soup}</span>
+                <span className="daily-menu-value">Slepačí vývar / Výber z dvoch polievok</span>
               </div>
               <div className="daily-menu-item">
                 <span className="daily-menu-label">Hlavné jedlo</span>
-                <span className="daily-menu-value">{dailyData.mainCourse}</span>
+                <span className="daily-menu-value">Filet z morského vlka na južanský spôsob <span className="allergen-small">/4/</span></span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Príloha</span>
+                <span className="daily-menu-value">Zemiakovo hráškové pyré <span className="allergen-small">/7/</span></span>
               </div>
             </div>
           </motion.div>
@@ -1200,10 +1201,10 @@ const Footer = () => {
   );
 };
 
-// --- HLAVNÝ KOMPONENT ---
+// Main App Component
 const MainApp = () => {
   useEffect(() => {
-    // Inicializácia Lenis (hladké skrolovanie)
+    // Initialize Lenis smooth scroll
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -1229,37 +1230,26 @@ const MainApp = () => {
   return (
     <div className="relative" data-testid="boccacio-app">
       <Navigation />
-      <Routes>
-        {/* HLAVNÁ STRÁNKA */}
-        <Route path="/" element={
-          <>
-            <HeroSection />
-            <AboutSection />
-            <InteriorSection />
-            <WinterGardenSection />
-            <NaseJedlaSection />
-            <FoodSection />
-            <JedalnyListokSection />
-            <MenuSection />
-            <ContactSection />
-            <Footer />
-          </>
-        } />
-
-        {/* ADMIN PANEL */}
-        <Route path="/admin" element={<AdminPanel />} />
-      </Routes>
+      <HeroSection />
+      <AboutSection />
+      <InteriorSection />
+      <WinterGardenSection />
+      <NaseJedlaSection />
+      <FoodSection />
+      <JedalnyListokSection />
+      <MenuSection />
+      <ContactSection />
+      <Footer />
     </div>
   );
 };
 
-// TOTO JE TO NAJDÔLEŽITEJŠIE - EXPORT A WRAPPERS
-export default function App() {
+function App() {
   return (
     <LanguageProvider>
-      <Router>
-        <MainApp />
-      </Router>
+      <MainApp />
     </LanguageProvider>
   );
 }
+
+export default App;
