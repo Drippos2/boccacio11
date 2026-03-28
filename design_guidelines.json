@@ -1,0 +1,148 @@
+{
+  "project_name": "Boccaccio – Typická talianska reštaurácia v Nitre",
+  "theme": "Warm Rustic Luxury",
+  "mode": "light",
+  "typography": {
+    "headings": {
+      "font_family": "Cormorant Garamond, serif",
+      "weights": ["400", "600", "700"],
+      "letter_spacing": "-0.02em",
+      "transform": "none",
+      "usage": "H1, H2, H3, Section Titles"
+    },
+    "body": {
+      "font_family": "Manrope, sans-serif",
+      "weights": ["300", "400", "500"],
+      "letter_spacing": "0.01em",
+      "usage": "Paragraphs, Menu Descriptions, UI Elements"
+    },
+    "accents": {
+      "font_family": "Dancing Script, cursive",
+      "weights": ["400"],
+      "usage": "Signatures, 'Made with love' tags, Special offers"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": "#E07A5F",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#606C38",
+      "secondary_foreground": "#FFFFFF",
+      "background": "#FDFCF5",
+      "foreground": "#283618",
+      "accent": "#DDA15E",
+      "muted": "#FEFAE0",
+      "border": "#BC6C25"
+    },
+    "gradients": {
+      "hero_overlay": "linear-gradient(to bottom, rgba(40, 54, 24, 0.4), rgba(40, 54, 24, 0.1))",
+      "gold_shimmer": "linear-gradient(45deg, #DDA15E 0%, #FEFAE0 50%, #DDA15E 100%)"
+    },
+    "functional": {
+      "success": "#606C38",
+      "error": "#BC4749",
+      "warning": "#DDA15E"
+    }
+  },
+  "spacing_system": {
+    "base_scale": "4px",
+    "container_padding": {
+      "mobile": "p-6",
+      "tablet": "p-12",
+      "desktop": "p-24"
+    },
+    "section_gap": "gap-32"
+  },
+  "layout_strategies": {
+    "grid_system": "Use 'Tetris' grid for Gallery and Menu highlights. Avoid symmetric 3-column grids.",
+    "containers": "Max-width 1400px for main content. Full-width for Hero and Parallax sections.",
+    "alignment": "Left-align text for readability, Center-align only for short Hero titles.",
+    "whitespace": "Use generous padding (py-32) between sections to create breathing room."
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "card": "0 10px 30px -10px rgba(40, 54, 24, 0.1)",
+      "float": "0 20px 40px -10px rgba(40, 54, 24, 0.15)"
+    },
+    "borders": {
+      "subtle": "1px solid rgba(188, 108, 37, 0.2)",
+      "interactive": "1px solid #E07A5F"
+    },
+    "textures": "Add a subtle 'paper grain' overlay with 3% opacity on the main background to avoid digital flatness.",
+    "radius": "rounded-sm (4px) for a classic, refined look. Avoid large rounded corners."
+  },
+  "components": {
+    "hero": {
+      "type": "Immersive Full Screen",
+      "animation": "Slow fade-up of text + Zoom-out of background image",
+      "elements": "Logo, Headline, 'Book a Table' CTA, Scroll Indicator"
+    },
+    "navigation": {
+      "style": "Floating Pill",
+      "position": "Fixed Top Center",
+      "background": "Glassmorphism (bg-cream/80 backdrop-blur-md)",
+      "items": ["About", "Menu", "Gallery", "Contact", "Lang Switcher"]
+    },
+    "menu_section": {
+      "style": "Categorized List with Image Previews on Hover",
+      "interaction": "Hovering a menu item reveals its image in a fixed position or adjacent card."
+    },
+    "gallery": {
+      "style": "Masonry Grid with Parallax",
+      "library": "framer-motion for entrance, lenis for scroll"
+    },
+    "contact": {
+      "style": "Split Layout (Map Left, Info Right)",
+      "details": "Address, Phone, Email, Opening Hours"
+    },
+    "language_switcher": {
+      "style": "Minimal text toggle (SK | EN | DE | IT)",
+      "location": "Nav Right"
+    }
+  },
+  "motion": {
+    "library": "framer-motion",
+    "scroll": "lenis (MANDATORY for premium feel)",
+    "rules": [
+      "No instant appearances. Everything must fade-in or slide-up.",
+      "Stagger children elements by 0.1s.",
+      "Images must have a subtle scale-in (1.1 -> 1.0) on reveal.",
+      "Text reveal: 'clip-path' wipe or 'y-axis' slide."
+    ]
+  },
+  "image_urls": {
+    "hero_bg": "https://images.unsplash.com/photo-1770232230192-4ee3d0dbf43c?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "about_chef": "https://images.unsplash.com/photo-1771508558305-11364b4069b6?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "interior_1": "https://images.unsplash.com/photo-1670366187101-edb4ffbc3467?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "menu_steak": "https://images.unsplash.com/photo-1676300185579-ed2b14891d82?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "menu_seafood": "https://images.unsplash.com/photo-1607375658859-39f31567ce13?crop=entropy&cs=srgb\u0026fm=jpg\u0026ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwxfHxzZWFmb29kJTIwcGFzdGElMjBwbGF0dGVyJTIwaXRhbGlhbnxlbnwwfHx8fDE3NzM0NTEwMDV8MA\u0026ixlib=rb-4.1.0\u0026q=85",
+    "menu_pasta": "https://images.unsplash.com/photo-1612966893103-790e549a2ab1?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "menu_dessert": "https://images.unsplash.com/photo-1580876205974-a8d6894b0f71?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "menu_salad": "https://images.unsplash.com/photo-1676300185089-8781af127fee?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "gallery_1": "https://images.unsplash.com/photo-1553632544-9bae92ffb225?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "gallery_2": "https://images.unsplash.com/photo-1612966874574-e0a92ad2bc43?crop=entropy&cs=srgb&fm=jpg&q=85"
+  },
+  "content_strategy": {
+    "voice": "Welcoming, passionate, authentic, professional.",
+    "multilingual": "Implement a context provider for language state. Default to SK.",
+    "placeholders": {
+      "address": "Farská 1315/38, 949 01 Nitra, Slovakia",
+      "phone": "+421 917 123 456",
+      "email": "info@boccaccio.sk",
+      "founder": "Oreste Calzolari (Est. 1997)"
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure text on images has a dark overlay or text-shadow.",
+    "motion": "Respect 'prefers-reduced-motion'.",
+    "semantic_html": "Use <article> for menu items, <section> for major blocks."
+  },
+  "universal_guidelines": [
+    "Do NOT use 'Inter' font.",
+    "Do NOT use gradients for text.",
+    "Do NOT use pure black (#000000).",
+    "ALWAYS use Lenis for smooth scrolling.",
+    "ALWAYS add data-testid to interactive elements.",
+    "Ensure the design feels like a 'Tuscan Villa' translated to the web."
+  ]
+}
