@@ -848,6 +848,44 @@ const JedalnyListokSection = () => {
 // Menu Section - Denné Menu
 const MenuSection = () => {
   const { t } = useLanguage();
+  // Vytvoríme miesto pre dáta z databázy
+  const [dailyMenu, setDailyMenu] = useState(null);
+  
+  {/* Menu č.1 - DYNAMICKÉ */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="daily-menu-card"
+          >
+            <div className="daily-menu-header">
+              <h3 className="daily-menu-title">Menu č.1</h3>
+              {/* Cena z databázy, ak nie je, ukáže 8,90 € */}
+              <span className="daily-menu-price">{dailyMenu ? dailyMenu.price : "8,90 €"}</span>
+            </div>
+            <div className="daily-menu-content">
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Polievka</span>
+                {/* Polievka z databázy */}
+                <span className="daily-menu-value">
+                  {dailyMenu ? dailyMenu.soup : "Načítavam..."}
+                </span>
+              </div>
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Hlavné jedlo</span>
+                {/* Hlavné jedlo z databázy */}
+                <span className="daily-menu-value">
+                  {dailyMenu ? dailyMenu.mainCourse : "Načítavam..."}
+                </span>
+              </div>
+              {/* Prílohu zatiaľ necháme takto, alebo ak ju máš v DB, daj dailyMenu.sideDish */}
+              <div className="daily-menu-item">
+                <span className="daily-menu-label">Príloha</span>
+                <span className="daily-menu-value">V cene menu</span>
+              </div>
+            </div>
+          </motion.div>
 
   const pizzaOptions = [
     { name: 'Prosciutto e funghi', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella, šunka, šampiňóny' },
