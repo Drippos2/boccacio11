@@ -6,6 +6,10 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import Lenis from "@studio-freight/lenis";
 import { Instagram, Facebook, Phone, Mail, MapPin, Clock, ChevronDown, Menu, X } from "lucide-react";
 
+// TENTO RIADOK JE KRITICKÝ PRE ADMINA:
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; 
+import AdminPanel from "./AdminPanel";
+
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -1201,10 +1205,8 @@ const Footer = () => {
   );
 };
 
-// Main App Component
 const MainApp = () => {
   useEffect(() => {
-    // Initialize Lenis smooth scroll
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -1221,35 +1223,42 @@ const MainApp = () => {
     }
 
     requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-    };
+    return () => lenis.destroy();
   }, []);
 
   return (
     <div className="relative" data-testid="boccacio-app">
-      <Navigation />
-      <HeroSection />
-      <AboutSection />
-      <InteriorSection />
-      <WinterGardenSection />
-      <NaseJedlaSection />
-      <FoodSection />
-      <JedalnyListokSection />
-      <MenuSection />
-      <ContactSection />
-      <Footer />
+      <Routes>
+        {/* 1. HLAVNÁ STRÁNKA - Sem idú všetky sekcie */}
+        <Route path="/" element={
+          <>
+            <Navigation />
+            <HeroSection />
+            <AboutSection />
+            <InteriorSection />
+            <WinterGardenSection />
+            <NaseJedlaSection />
+            <FoodSection />
+            <JedalnyListokSection />
+            <MenuSection />
+            <ContactSection />
+            <Footer />
+          </>
+        } />
+
+        {/* 2. ADMIN PANEL - Tu bude len prihlasovanie, žiadna navigácia ani fotky */}
+        <Route path="/admin" element={<AdminPanel />} />
+      </Routes>
     </div>
   );
 };
 
-function App() {
+export default function App() {
   return (
     <LanguageProvider>
-      <MainApp />
+      <Router>
+        <MainApp />
+      </Router>
     </LanguageProvider>
   );
 }
-
-export default App;
