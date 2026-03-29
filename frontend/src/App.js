@@ -846,9 +846,24 @@ const JedalnyListokSection = () => {
   );
 };
 
-// Menu Section - Denné Menu
 const MenuSection = () => {
   const { t } = useLanguage();
+  const [dailyMenu, setDailyMenu] = useState(null);
+
+  // Načítanie dát z tvojho API na Renderi
+  useEffect(() => {
+    fetch("https://boccacio11.onrender.com/api/daily-menu")
+      .then((res) => res.json())
+      .then((data) => {
+        // Ak API vráti pole, vezmeme prvý prvok, inak priamo objekt
+        if (Array.isArray(data)) {
+          setDailyMenu(data[0]);
+        } else {
+          setDailyMenu(data);
+        }
+      })
+      .catch((err) => console.error("Chyba pri načítaní menu:", err));
+  }, []);
 
   const pizzaOptions = [
     { name: 'Prosciutto e funghi', allergens: '(1,7)', desc: 'Paradajková omáčka, mozzarella, šunka, šampiňóny' },
@@ -862,109 +877,97 @@ const MenuSection = () => {
   ];
 
   return (
-    <section id="menu" className="py-24 md:py-32 bg-muted/30" data-testid="menu-section">
-      <div className="max-w-5xl mx-auto px-6 md:px-12">
+    <section id="menu" className="py-24 md:py-32 relative bg-background" data-testid="menu-section">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
         <AnimatedSection className="text-center mb-16">
           <motion.span variants={fadeInUp} className="font-script text-xl text-primary">
             {t("menu.subtitle")}
           </motion.span>
-          <motion.h2
-            variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground"
-          >
+          <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-semibold mt-2 text-foreground">
             {t("menu.title")}
           </motion.h2>
         </AnimatedSection>
 
-        <div className="space-y-8">
-          {/* Menu č.1 */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="daily-menu-card"
-          >
-            <div className="daily-menu-header">
-              <h3 className="daily-menu-title">Menu č.1</h3>
-              <span className="daily-menu-price">8,90 €</span>
-            </div>
-            <div className="daily-menu-content">
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Polievka</span>
-                <span className="daily-menu-value">Slepačí vývar / Výber z dvoch polievok</span>
-              </div>
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Hlavné jedlo</span>
-                <span className="daily-menu-value">Filet z morského vlka na južanský spôsob <span className="allergen-small">/4/</span></span>
-              </div>
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Príloha</span>
-                <span className="daily-menu-value">Zemiakovo hráškové pyré <span className="allergen-small">/7/</span></span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Menu č.2 - Pizza */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="daily-menu-card"
-          >
-            <div className="daily-menu-header">
-              <h3 className="daily-menu-title">Menu č.2 - Pizza menu</h3>
-              <span className="daily-menu-price">8,90 €</span>
-            </div>
-            <div className="daily-menu-content">
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Polievka</span>
-                <span className="daily-menu-value">Výber z 2 polievok</span>
-              </div>
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Hlavné jedlo</span>
-                <span className="daily-menu-value">Výber z 8 druhov veľkej pizze:</span>
-              </div>
-            </div>
-            
-            <div className="pizza-options-grid">
-              {pizzaOptions.map((pizza, index) => (
-                <div key={index} className="pizza-option">
-                  <div className="pizza-option-header">
-                    <span className="pizza-number">{index + 1}.</span>
-                    <span className="pizza-name">{pizza.name}</span>
-                    <span className="pizza-allergens">{pizza.allergens}</span>
-                  </div>
-                  <p className="pizza-desc">{pizza.desc}</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          
+          {/* MENU č. 1 - DYNAMICKÉ (Z DATABÁZY) */}
+          <AnimatedSection>
+            <motion.div variants={fadeInUp} className="menu-card featured">
+              <div className="menu-card-badge">{t("menu.dailyBadge")}</div>
+              <h3 className="text-2xl font-semibold mb-4">{t("menu.dailyTitle")}</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <span className="block text-sm uppercase tracking-wider text-primary font-medium mb-1">
+                    {t("menu.soup")}
+                  </span>
+                  <p className="text-lg italic min-h-[1.5em]">
+                    {dailyMenu ? dailyMenu.soup : "Načítavam..."}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </motion.div>
+                
+                <div>
+                  <span className="block text-sm uppercase tracking-wider text-primary font-medium mb-1">
+                    {t("menu.mainCourse")}
+                  </span>
+                  <p className="text-lg font-medium leading-tight min-h-[3em]">
+                    {dailyMenu ? dailyMenu.mainCourse : "Načítavam..."}
+                  </p>
+                </div>
 
-          {/* Menu č.3 */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="daily-menu-card"
-          >
-            <div className="daily-menu-header">
-              <h3 className="daily-menu-title">Menu č.3</h3>
-              <span className="daily-menu-price">8,50 €</span>
-            </div>
-            <div className="daily-menu-content">
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Polievka</span>
-                <span className="daily-menu-value">Výber z dvoch polievok</span>
+                <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
+                   <span className="text-2xl font-bold text-primary">
+                     {dailyMenu ? dailyMenu.price : "8,90 €"}
+                   </span>
+                   <span className="text-xs text-muted-foreground uppercase">Po-Pi 11:00 - 14:00</span>
+                </div>
               </div>
-              <div className="daily-menu-item">
-                <span className="daily-menu-label">Hlavné jedlo</span>
-                <span className="daily-menu-value">Šalát Pollo</span>
+            </motion.div>
+          </AnimatedSection>
+
+          {/* MENU č. 2 - PIZZA (STATICKÉ) */}
+          <AnimatedSection>
+            <motion.div variants={fadeInUp} className="menu-card">
+              <h3 className="text-2xl font-semibold mb-4">Menu č.2 - Pizza</h3>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {pizzaOptions.map((item, index) => (
+                  <div key={index} className="border-b border-primary/5 pb-2 last:border-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <h4 className="font-medium text-sm">{index + 1}. {item.name}</h4>
+                      <span className="text-[10px] text-muted-foreground">{item.allergens}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-tight mt-1">{item.desc}</p>
+                  </div>
+                ))}
               </div>
-            </div>
-          </motion.div>
+              <div className="pt-4 mt-4 border-t border-primary/10 flex justify-between items-center">
+                 <span className="text-2xl font-bold text-primary">8,90 €</span>
+                 <span className="text-xs text-muted-foreground uppercase">Vrátane polievky</span>
+              </div>
+            </motion.div>
+          </AnimatedSection>
+
+          {/* MENU č. 3 - ŠALÁT (STATICKÉ) */}
+          <AnimatedSection>
+            <motion.div variants={fadeInUp} className="menu-card">
+              <h3 className="text-2xl font-semibold mb-4">Menu č.3 - Šalát</h3>
+              <div className="space-y-4">
+                <div>
+                  <span className="block text-sm uppercase tracking-wider text-primary font-medium mb-1">
+                    Insalata di Pollo
+                  </span>
+                  <p className="text-muted-foreground text-sm">
+                    Listový šalát, paradajky, olivy, grilované kuracie mäso, bylinkový dressing, opečený toast
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
+                   <span className="text-2xl font-bold text-primary">8,50 €</span>
+                   <span className="text-xs text-muted-foreground uppercase">Vrátane polievky</span>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatedSection>
+
         </div>
       </div>
     </section>
