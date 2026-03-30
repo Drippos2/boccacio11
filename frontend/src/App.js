@@ -838,7 +838,7 @@ const MenuSection = () => {
   const [dailyData, setDailyData] = useState({
     soup: "Načítavam...",
     mainCourse: "Načítavam...",
-    price: "8,90€"
+    price: "8,90 €"
   });
 
   // Efekt na načítanie dát zo servera
@@ -918,7 +918,7 @@ const MenuSection = () => {
           >
             <div className="daily-menu-header">
               <h3 className="daily-menu-title">Menu č.2 - Pizza menu</h3>
-              <span className="daily-menu-price">8,90€</span>
+              <span className="daily-menu-price">8,90 €</span>
             </div>
             <div className="daily-menu-content">
               <div className="daily-menu-item">
@@ -955,7 +955,7 @@ const MenuSection = () => {
           >
             <div className="daily-menu-header">
               <h3 className="daily-menu-title">Menu č.3</h3>
-              <span className="daily-menu-price">8,50€</span>
+              <span className="daily-menu-price">8,50 €</span>
             </div>
             <div className="daily-menu-content">
               <div className="daily-menu-item">
