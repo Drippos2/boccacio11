@@ -52,17 +52,18 @@ const AnimatedSection = ({ children, className = "" }) => {
   );
 };
 
-// Navigation Component
 const Navigation = () => {
   const { t, language, setLanguage } = useLanguage();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 100);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // Funkcia na skrolovanie
+  const scrollToSection = (href) => {
+    setMobileMenuOpen(false);
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const navItems = [
     { key: "about", href: "#about" },
@@ -74,103 +75,86 @@ const Navigation = () => {
     { key: "contact", href: "#contact" },
   ];
 
-  const scrollToSection = (href) => {
-    setMobileMenuOpen(false);
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   return (
     <>
-      {/* Hero Navigation - Full width, transparent, shown at top */}
-      <motion.nav 
-        className={`hero-nav ${scrolled ? "hero-nav-hidden" : ""}`}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        data-testid="hero-navigation"
-      >
-        <div className="hero-nav-container">
-          <div className="hero-nav-links">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => scrollToSection(item.href)}
-                className="hero-nav-link"
-                data-testid={`hero-nav-${item.key}`}
-              >
-                {t(`nav.${item.key}`)}
-              </button>
-            ))}
-          </div>
-          
-          {/* Language Flags */}
-          <div className="hero-nav-flags">
-            {Object.values(languages).map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => setLanguage(lang.code)}
-                className={`hero-flag-btn ${language === lang.code ? "active" : ""}`}
-                data-testid={`lang-${lang.code}`}
-                title={lang.name}
-              >
-                <img 
-                  src={lang.flagUrl} 
-                  alt={lang.name}
-                  className="w-6 h-4 object-cover rounded-sm"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      </motion.nav>
+      {/* PEVNÝ ČIERNY KRÚŽOK (VŽDY VIDITEĽNÝ) */}
+      <div className="fixed top-6 left-6 z-[60]">
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300"
+          data-testid="permanent-menu-toggle"
+        >
+          <Menu className="w-7 h-7" />
+        </button>
+      </div>
 
-      {/* Scrolled Navigation - Compact pill, shown when scrolling */}
-      <nav className={`scrolled-nav ${scrolled ? "scrolled-nav-visible" : ""}`} data-testid="main-navigation">
-        <div className="scrolled-nav-container">
-          {/* Logo/Brand */}
-          <button 
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="scrolled-nav-brand"
-          >
-            Boccaccio
-          </button>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => scrollToSection(item.href)}
-                className="scrolled-nav-link"
-                data-testid={`nav-${item.key}`}
-              >
-                {t(`nav.${item.key}`)}
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile Menu Button - inside pill */}
+      {/* JAZYKOVÉ VLAJKY (VŽDY VIDITEĽNÉ VPRAVO HORE) */}
+      <div className="fixed top-8 right-6 z-50 flex gap-3 bg-black/20 backdrop-blur-md p-2 rounded-full px-4">
+        {Object.values(languages).map((lang) => (
           <button
-            className="lg:hidden p-2 text-white/80 hover:text-white"
-            onClick={() => setMobileMenuOpen(true)}
-            data-testid="mobile-menu-toggle"
+            key={lang.code}
+            onClick={() => setLanguage(lang.code)}
+            className={`transition-opacity duration-300 ${language === lang.code ? "opacity-100 scale-110" : "opacity-40 hover:opacity-70"}`}
+            title={lang.name}
           >
-            <Menu className="w-5 h-5" />
+            <img 
+              src={lang.flagUrl} 
+              alt={lang.name}
+              className="w-6 h-4 object-cover rounded-sm"
+            />
           </button>
-        </div>
-      </nav>
+        ))}
+      </div>
 
-      {/* Hamburger Menu - Left Corner (visible when scrolled) */}
-      <button
-        className={`scrolled-nav-hamburger ${scrolled ? "scrolled-nav-hamburger-visible" : ""}`}
-        onClick={() => setMobileMenuOpen(true)}
-        data-testid="scrolled-menu-toggle"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+      {/* CELOOBRAZOVKOVÉ MENU (ANIMEPREZENCE) */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ x: "-100%" }} // Vysúva sa zľava
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-black text-white z-[70] flex flex-col p-12 overflow-y-auto"
+          >
+            {/* Tlačidlo zavrieť */}
+            <div className="flex justify-end">
+              <button 
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Odkazy v menu */}
+            <div className="flex flex-col gap-6 mt-12">
+              <span className="text-primary font-script text-2xl mb-4">Boccaccio</span>
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => scrollToSection(item.href)}
+                  className="text-4xl md:text-6xl font-bold text-left hover:text-primary transition-colors tracking-tighter uppercase"
+                >
+                  {t(`nav.${item.key}`)}
+                </button>
+              ))}
+            </div>
+
+            {/* Spodné info v menu */}
+            <div className="mt-auto pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between gap-8">
+               <div>
+                  <p className="text-white/50 text-sm uppercase tracking-widest mb-2">Kontakt</p>
+                  <p className="text-xl">Námestie Ľ. Štúra 11</p>
+                  <p className="text-xl">Bánovce nad Bebravou</p>
+               </div>
+               <div className="flex gap-6 items-end">
+                  <a href="#" className="hover:text-primary transition-colors"><Instagram size={30}/></a>
+                  <a href="#" className="hover:text-primary transition-colors"><Facebook size={30}/></a>
+               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu */}
       <AnimatePresence>
