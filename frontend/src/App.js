@@ -56,6 +56,7 @@ const Navigation = () => {
   const { t, language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Funkcia na skrolovanie
   const scrollToSection = (href) => {
     setMobileMenuOpen(false);
     const element = document.querySelector(href);
@@ -76,78 +77,80 @@ const Navigation = () => {
 
   return (
     <>
-      {/* HLAVNÝ ČIERNY KRÚŽOK - Menu */}
+      {/* PEVNÝ ČIERNY KRÚŽOK (VŽDY VIDITEĽNÝ) */}
       <div className="fixed top-6 left-6 z-[60]">
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+          className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300"
+          data-testid="permanent-menu-toggle"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-7 h-7" />
         </button>
       </div>
 
-      {/* CELOOBRAZOVKOVÉ MENU */}
+      {/* JAZYKOVÉ VLAJKY (VŽDY VIDITEĽNÉ VPRAVO HORE) */}
+      <div className="fixed top-8 right-6 z-50 flex gap-3 bg-black/20 backdrop-blur-md p-2 rounded-full px-4">
+        {Object.values(languages).map((lang) => (
+          <button
+            key={lang.code}
+            onClick={() => setLanguage(lang.code)}
+            className={`transition-opacity duration-300 ${language === lang.code ? "opacity-100 scale-110" : "opacity-40 hover:opacity-70"}`}
+            title={lang.name}
+          >
+            <img 
+              src={lang.flagUrl} 
+              alt={lang.name}
+              className="w-6 h-4 object-cover rounded-sm"
+            />
+          </button>
+        ))}
+      </div>
+
+      {/* CELOOBRAZOVKOVÉ MENU (ANIMEPREZENCE) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/98 backdrop-blur-2xl text-white z-[70] flex flex-col p-8"
+            initial={{ x: "-100%" }} // Vysúva sa zľava
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-black text-white z-[70] flex flex-col p-12 overflow-y-auto"
           >
-            {/* Horná lišta v menu: Logo + Zavrieť */}
-            <div className="flex justify-between items-center mb-10">
-              <span className="text-xl font-bold tracking-tighter italic text-primary">BOCCACCIO</span>
+            {/* Tlačidlo zavrieť */}
+            <div className="flex justify-end">
               <button 
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-10 h-10 flex items-center justify-center border border-white/20 rounded-full"
+                className="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Odkazy v menu - Menšie a kompaktnejšie */}
-            <div className="flex flex-col gap-4">
-              {navItems.map((item, index) => (
-                <motion.button
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
+            {/* Odkazy v menu */}
+            <div className="flex flex-col gap-6 mt-12">
+              <span className="text-primary font-script text-2xl mb-4">Boccaccio</span>
+              {navItems.map((item) => (
+                <button
                   key={item.key}
                   onClick={() => scrollToSection(item.href)}
-                  className="text-3xl font-bold text-left hover:text-primary transition-colors tracking-tighter uppercase italic"
+                  className="text-4xl md:text-6xl font-bold text-left hover:text-primary transition-colors tracking-tighter uppercase"
                 >
                   {t(`nav.${item.key}`)}
-                </motion.button>
+                </button>
               ))}
             </div>
 
-            {/* Jazyky - Teraz sú priamo v menu, aby sa na ne dobre klikalo */}
-            <div className="mt-10 pt-8 border-t border-white/10">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-4">Vyberte jazyk</p>
-              <div className="flex gap-4">
-                {Object.values(languages).map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`flex items-center gap-2 p-2 px-3 rounded-lg border ${
-                      language === lang.code ? "border-primary bg-primary/10" : "border-white/10"
-                    }`}
-                  >
-                    <img src={lang.flagUrl} alt={lang.name} className="w-5 h-3 object-cover rounded-sm" />
-                    <span className="text-xs font-medium uppercase">{lang.code}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Spodná časť - Sociálne siete */}
-            <div className="mt-auto flex justify-between items-center pb-4">
-               <div className="flex gap-6">
-                  <a href="#" className="text-white/60 hover:text-primary"><Instagram size={20}/></a>
-                  <a href="#" className="text-white/60 hover:text-primary"><Facebook size={20}/></a>
+            {/* Spodné info v menu */}
+            <div className="mt-auto pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between gap-8">
+               <div>
+                  <p className="text-white/50 text-sm uppercase tracking-widest mb-2">Kontakt</p>
+                  <p className="text-xl">Námestie Ľ. Štúra 11</p>
+                  <p className="text-xl">Bánovce nad Bebravou</p>
                </div>
-               <p className="text-[10px] text-white/30 uppercase tracking-widest">Bánovce n. B.</p>
+               <div className="flex gap-6 items-end">
+                  <a href="#" className="hover:text-primary transition-colors"><Instagram size={30}/></a>
+                  <a href="#" className="hover:text-primary transition-colors"><Facebook size={30}/></a>
+               </div>
             </div>
           </motion.div>
         )}
