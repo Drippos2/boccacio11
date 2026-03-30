@@ -76,76 +76,78 @@ const Navigation = () => {
 
   return (
     <>
-      {/* MENU KRÚŽOK - Menší a elegantnejší */}
-      <div className="fixed top-8 left-8 z-[60]">
+      {/* HLAVNÝ ČIERNY KRÚŽOK - Menu */}
+      <div className="fixed top-6 left-6 z-[60]">
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-all duration-300 active:scale-95"
+          className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
         >
           <Menu className="w-5 h-5" />
         </button>
-      </div>
-
-      {/* JAZYKY - Malý, čistý prepínač vpravo hore */}
-      <div className="fixed top-8 right-8 z-50 flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 px-3 rounded-full border border-white/20 shadow-sm">
-        {Object.values(languages).map((lang) => (
-          <button
-            key={lang.code}
-            onClick={() => setLanguage(lang.code)}
-            className={`relative transition-all duration-300 p-0.5 rounded-sm ${
-              language === lang.code ? "ring-1 ring-primary scale-110" : "opacity-40 hover:opacity-100"
-            }`}
-          >
-            <img 
-              src={lang.flagUrl} 
-              alt={lang.name}
-              className="w-5 h-3.5 object-cover rounded-[1px]"
-            />
-          </button>
-        ))}
       </div>
 
       {/* CELOOBRAZOVKOVÉ MENU */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="fixed inset-0 bg-black/95 backdrop-blur-xl text-white z-[70] flex flex-col justify-center items-center p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/98 backdrop-blur-2xl text-white z-[70] flex flex-col p-8"
           >
-            {/* Zavrieť menu */}
-            <button 
-              onClick={() => setMobileMenuOpen(false)}
-              className="absolute top-8 left-8 w-12 h-12 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            {/* Horná lišta v menu: Logo + Zavrieť */}
+            <div className="flex justify-between items-center mb-10">
+              <span className="text-xl font-bold tracking-tighter italic text-primary">BOCCACCIO</span>
+              <button 
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-10 h-10 flex items-center justify-center border border-white/20 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            {/* Odkazy */}
-            <div className="flex flex-col items-center gap-8">
-              <span className="text-primary font-script text-3xl mb-4 italic">Boccaccio</span>
+            {/* Odkazy v menu - Menšie a kompaktnejšie */}
+            <div className="flex flex-col gap-4">
               {navItems.map((item, index) => (
                 <motion.button
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: index * 0.05 }}
                   key={item.key}
                   onClick={() => scrollToSection(item.href)}
-                  className="text-3xl md:text-5xl font-bold hover:text-primary transition-colors tracking-tighter uppercase italic"
+                  className="text-3xl font-bold text-left hover:text-primary transition-colors tracking-tighter uppercase italic"
                 >
                   {t(`nav.${item.key}`)}
                 </motion.button>
               ))}
             </div>
 
-            {/* Spodné info */}
-            <div className="absolute bottom-12 flex flex-col items-center gap-4 text-white/50">
-               <div className="flex gap-8">
-                  <a href="#" className="hover:text-primary transition-colors"><Instagram size={24}/></a>
-                  <a href="#" className="hover:text-primary transition-colors"><Facebook size={24}/></a>
+            {/* Jazyky - Teraz sú priamo v menu, aby sa na ne dobre klikalo */}
+            <div className="mt-10 pt-8 border-t border-white/10">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-4">Vyberte jazyk</p>
+              <div className="flex gap-4">
+                {Object.values(languages).map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    className={`flex items-center gap-2 p-2 px-3 rounded-lg border ${
+                      language === lang.code ? "border-primary bg-primary/10" : "border-white/10"
+                    }`}
+                  >
+                    <img src={lang.flagUrl} alt={lang.name} className="w-5 h-3 object-cover rounded-sm" />
+                    <span className="text-xs font-medium uppercase">{lang.code}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Spodná časť - Sociálne siete */}
+            <div className="mt-auto flex justify-between items-center pb-4">
+               <div className="flex gap-6">
+                  <a href="#" className="text-white/60 hover:text-primary"><Instagram size={20}/></a>
+                  <a href="#" className="text-white/60 hover:text-primary"><Facebook size={20}/></a>
                </div>
-               <p className="text-xs uppercase tracking-[0.2em]">Bánovce nad Bebravou</p>
+               <p className="text-[10px] text-white/30 uppercase tracking-widest">Bánovce n. B.</p>
             </div>
           </motion.div>
         )}
