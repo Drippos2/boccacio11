@@ -1208,8 +1208,20 @@ const Footer = () => {
   );
 };
 
-const MainApp = () => {
+ const MainApp = () => {
   useEffect(() => {
+    // 1. Získame aktuálnu adresu (napr. / alebo /admin)
+    const currentPath = window.location.pathname;
+
+    // 2. Návštevu započítame LEN ak nie sme v admin paneli
+    if (currentPath !== "/admin") {
+      // Pridávame ?t=... aby sme oklamali cache prehliadača (vždy nové volanie)
+      fetch(`https://boccacio11.onrender.com/api/track-visit?t=${Date.now()}`)
+        .then(() => console.log("Návšteva úspešne započítaná"))
+        .catch(err => console.error("Chyba zápisu:", err));
+    }
+
+    // --- TVOJ PÔVODNÝ KÓD PRE LENIS (ZACHOVANÝ) ---
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
