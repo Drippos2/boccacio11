@@ -1312,4 +1312,4 @@ export default function App() {
       </Router>
     </LanguageProvider>
   );
-}
+} .
