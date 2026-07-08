@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye, Megaphone } from 'lucide-react';
 
 // 1. PRIDANÝ KOMPONENT PRE ANIMÁCIU ČÍSLA (musí byť mimo hlavného AdminPanel)
 const AnimatedCounter = ({ targetValue }) => {
@@ -43,7 +43,8 @@ const AdminPanel = () => {
   const [menu, setMenu] = useState({
     soup: '',
     mainCourse: '',
-    price: '8,90 €'
+    price: '8,90 €',
+    announcement: '' // Pridané pole pre oznamy
   });
 
   // Kontrola prihlásenia pri štarte
@@ -79,11 +80,12 @@ const AdminPanel = () => {
       const res = await fetch("https://boccacio11.onrender.com/api/daily-menu");
       const data = await res.json();
       if (data) {
-        // Upravené pre tvoj backend, ktorý vracia objekt priamo
+        // Upravené pre tvoj backend, pridaný fallback pre announcement
         setMenu({
           soup: data.soup || '',
           mainCourse: data.mainCourse || '',
-          price: data.price || '8,90 €'
+          price: data.price || '8,90 €',
+          announcement: data.announcement || '' 
         });
       }
     } catch (err) {
@@ -116,11 +118,11 @@ const AdminPanel = () => {
       const response = await fetch("https://boccacio11.onrender.com/api/daily-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(menu),
+        body: JSON.stringify(menu), // Posiela sa celý objekt vrátane oznamu
       });
 
       if (response.ok) {
-        setStatus({ type: 'success', message: 'Menu bolo úspešne uložené!' });
+        setStatus({ type: 'success', message: 'Dáta boli úspešne uložené!' });
         setTimeout(() => setStatus({ type: '', message: '' }), 3000);
       } else {
         throw new Error();
@@ -161,7 +163,7 @@ const AdminPanel = () => {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 text-black">
       <div className="max-w-2xl mx-auto space-y-6">
         
-        {/* --- PRIDANÁ KARTA NÁVŠTEVNOSTI --- */}
+        {/* --- KARTA NÁVŠTEVNOSTI --- */}
         <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 flex items-center gap-6">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
             <Eye size={32} />
@@ -216,6 +218,26 @@ const AdminPanel = () => {
                 value={menu.price}
                 onChange={(e) => setMenu({...menu, price: e.target.value})}
               />
+            </div>
+
+            {/* --- TU ZAČÍNA NOVÁ SEKČIA PRE OZNAMY (Hneď po scrollovaní nižšie) --- */}
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <Megaphone size={18} className="text-orange-500" />
+                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  Aktuálny oznam / Novinka na webe
+                </label>
+              </div>
+              <textarea
+                rows="3"
+                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black bg-orange-50/30 placeholder-gray-400"
+                value={menu.announcement}
+                onChange={(e) => setMenu({...menu, announcement: e.target.value})}
+                placeholder="napr. Dnes 15.11. zatvorené z technických príčin. Alebo: Prijímame objednávky na akcie!"
+              />
+              <p className="text-xs text-gray-400 mt-1 italic">
+                *Ak nechcete na hlavnej stránke zobrazovať žiadny oznam, jednoducho toto pole vymažte a uložte zmeny.
+              </p>
             </div>
 
             {status.message && (

@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
+from typing import Optional  # Pridané pre voliteľné pole
 import os
 
 app = FastAPI()
@@ -22,10 +23,12 @@ collection = db.daily_menu
 # NOVÁ KOLEKCIA PRE ŠTATISTIKY
 stats_collection = db.stats
 
+# UPRAVENÝ MODEL - pridané pole pre oznam
 class DailyMenu(BaseModel):
     soup: str
     mainCourse: str
     price: str
+    announcement: Optional[str] = ""  # <-- TENTO RIADOK TU PRIBUDOL
 
 # --- PÔVODNÉ FUNKCIE PRE MENU ---
 
@@ -34,8 +37,16 @@ async def get_menu():
     menu = await collection.find().sort("_id", -1).to_list(1)
     if menu:
         menu[0]["_id"] = str(menu[0]["_id"])
+        # Zabezpečíme, aby frontend dostal aspoň prázdny string, ak oznam v DB neexistuje
+        if "announcement" not in menu[0]:
+            menu[0]["announcement"] = ""
         return menu[0]
-    return {"soup": "Pripravujeme...", "mainCourse": "Pripravujeme...", "price": "8,90 €"}
+    return {
+        "soup": "Pripravujeme...", 
+        "mainCourse": "Pripravujeme...", 
+        "price": "8,90 €",
+        "announcement": ""  # <-- Pridané aj do predvoleného objektu
+    }
 
 @app.post("/api/daily-menu")
 async def update_menu(menu: DailyMenu):

@@ -830,6 +830,41 @@ const JedalnyListokSection = () => {
   );
 };
 
+const NewsSection = () => {
+  const [news, setNews] = useState("");
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        // Použijeme ten istý endpoint, z ktorého berieš menu, 
+        // lebo v tvojom admine to ukladáš do jedného objektu 'menu'
+        const response = await fetch("https://boccacio11.onrender.com/api/daily-menu");
+        const data = await response.json();
+        if (data && data.announcement) {
+          setNews(data.announcement);
+        } else {
+          setNews(""); // Ak je prázdne, nezobrazíme nič
+        }
+      } catch (err) {
+        console.error("Chyba pri načítaní noviniek:", err);
+      }
+    };
+    fetchNews();
+  }, []);
+
+  // Ak nie je nastavený žiadny oznam, sekcia sa nevykreslí
+  if (!news) return null;
+
+  return (
+    <section className="bg-orange-500 py-6 text-center text-white">
+      <div className="max-w-4xl mx-auto px-6">
+        <h2 className="text-xl font-bold uppercase tracking-widest mb-1 opacity-90">Aktuálne oznamy</h2>
+        <p className="text-xl font-medium">{news}</p>
+      </div>
+    </section>
+  );
+};
+
 // Menu Section - Denné Menu (PREPOJENÉ NA ADMINA)
 const MenuSection = () => {
   const { t } = useLanguage();
@@ -1249,6 +1284,7 @@ const Footer = () => {
           <>
             <Navigation />
             <HeroSection />
+            <NewsSection />
             <AboutSection />
             <InteriorSection />
             <WinterGardenSection />
