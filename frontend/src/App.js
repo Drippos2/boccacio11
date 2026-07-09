@@ -831,19 +831,23 @@ const JedalnyListokSection = () => {
 };
 
 const NewsSection = () => {
-  const [news, setNews] = useState("");
+  // Ukladáme celý objekt, nielen string
+  const [newsData, setNewsData] = useState({ announcement: "", image: "" });
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        // Použijeme ten istý endpoint, z ktorého berieš menu, 
-        // lebo v tvojom admine to ukladáš do jedného objektu 'menu'
         const response = await fetch("https://boccacio11.onrender.com/api/daily-menu");
         const data = await response.json();
+        
+        // Ak existuje oznam, uložíme ho aj s obrázkom
         if (data && data.announcement) {
-          setNews(data.announcement);
+          setNewsData({ 
+            announcement: data.announcement, 
+            image: data.image || "" 
+          });
         } else {
-          setNews(""); // Ak je prázdne, nezobrazíme nič
+          setNewsData({ announcement: "", image: "" });
         }
       } catch (err) {
         console.error("Chyba pri načítaní noviniek:", err);
@@ -852,14 +856,23 @@ const NewsSection = () => {
     fetchNews();
   }, []);
 
-  // Ak nie je nastavený žiadny oznam, sekcia sa nevykreslí
-  if (!news) return null;
+  // Ak nie je nastavený žiadny oznam, sekcia sa nevykreslí (zachovaná logika)
+  if (!newsData.announcement) return null;
 
   return (
     <section className="bg-orange-500 py-6 text-center text-white">
       <div className="max-w-4xl mx-auto px-6">
+        {/* Obrázok sa zobrazí len ak existuje */}
+        {newsData.image && (
+          <img 
+            src={newsData.image} 
+            alt="Aktuálna novinka" 
+            className="w-full max-w-sm mx-auto rounded-xl mb-4 border-2 border-white/20 shadow-lg"
+          />
+        )}
+        
         <h2 className="text-xl font-bold uppercase tracking-widest mb-1 opacity-90">Aktuálne oznamy</h2>
-        <p className="text-xl font-medium">{news}</p>
+        <p className="text-xl font-medium">{newsData.announcement}</p>
       </div>
     </section>
   );

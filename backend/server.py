@@ -29,6 +29,7 @@ class DailyMenu(BaseModel):
     mainCourse: str
     price: str
     announcement: Optional[str] = ""  # <-- TENTO RIADOK TU PRIBUDOL
+    image: Optional[str] = ""
 
 # --- PÔVODNÉ FUNKCIE PRE MENU ---
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye, Megaphone } from 'lucide-react';
+import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye, Megaphone, Image as ImageIcon } from 'lucide-react';
 
-// 1. PRIDANÝ KOMPONENT PRE ANIMÁCIU ČÍSLA (musí byť mimo hlavného AdminPanel)
 const AnimatedCounter = ({ targetValue }) => {
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -39,24 +38,23 @@ const AdminPanel = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [status, setStatus] = useState({ type: '', message: '' });
-  const [visits, setVisits] = useState(0); // Pridaný stav pre návštevy
+  const [visits, setVisits] = useState(0);
   const [menu, setMenu] = useState({
     soup: '',
     mainCourse: '',
     price: '8,90 €',
-    announcement: '' // Pridané pole pre oznamy
+    announcement: '',
+    image: '' // Pridané pole pre obrázok
   });
 
-  // Kontrola prihlásenia pri štarte
   useEffect(() => {
     if (localStorage.getItem("admin_auth") === "true") {
       setIsLoggedIn(true);
       fetchCurrentMenu();
-      fetchStats(); // Načítať štatistiky hneď
+      fetchStats();
     }
   }, []);
 
-  // AUTOMATICKÁ AKTUALIZÁCIA KAŽDÝCH 10 SEKÚND
   useEffect(() => {
     if (!isLoggedIn) return;
     const interval = setInterval(() => {
@@ -64,6 +62,18 @@ const AdminPanel = () => {
     }, 10000);
     return () => clearInterval(interval);
   }, [isLoggedIn]);
+
+  // Funkcia na konverziu obrázka na Base64
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMenu({ ...menu, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -80,12 +90,12 @@ const AdminPanel = () => {
       const res = await fetch("https://boccacio11.onrender.com/api/daily-menu");
       const data = await res.json();
       if (data) {
-        // Upravené pre tvoj backend, pridaný fallback pre announcement
         setMenu({
           soup: data.soup || '',
           mainCourse: data.mainCourse || '',
           price: data.price || '8,90 €',
-          announcement: data.announcement || '' 
+          announcement: data.announcement || '',
+          image: data.image || '' // Načítanie existujúceho obrázka
         });
       }
     } catch (err) {
@@ -118,7 +128,7 @@ const AdminPanel = () => {
       const response = await fetch("https://boccacio11.onrender.com/api/daily-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(menu), // Posiela sa celý objekt vrátane oznamu
+        body: JSON.stringify(menu),
       });
 
       if (response.ok) {
@@ -162,8 +172,6 @@ const AdminPanel = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 text-black">
       <div className="max-w-2xl mx-auto space-y-6">
-        
-        {/* --- KARTA NÁVŠTEVNOSTI --- */}
         <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 flex items-center gap-6">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
             <Eye size={32} />
@@ -190,54 +198,36 @@ const AdminPanel = () => {
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase italic">Dnešná polievka</label>
-              <input
-                type="text"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black"
-                value={menu.soup}
-                onChange={(e) => setMenu({...menu, soup: e.target.value})}
-                placeholder="napr. Slepačí vývar s rezancami"
-              />
+              <input type="text" className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black" value={menu.soup} onChange={(e) => setMenu({...menu, soup: e.target.value})} placeholder="napr. Slepačí vývar s rezancami" />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase italic">Hlavné jedlo</label>
-              <textarea
-                rows="3"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black"
-                value={menu.mainCourse}
-                onChange={(e) => setMenu({...menu, mainCourse: e.target.value})}
-                placeholder="napr. 150g Viedenský bravčový rezeň, zemiakový šalát"
-              />
+              <textarea rows="3" className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black" value={menu.mainCourse} onChange={(e) => setMenu({...menu, mainCourse: e.target.value})} placeholder="napr. 150g Viedenský bravčový rezeň, zemiakový šalát" />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase italic">Cena menu</label>
-              <input
-                type="text"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-xl font-bold text-orange-600"
-                value={menu.price}
-                onChange={(e) => setMenu({...menu, price: e.target.value})}
-              />
-            </div>
-
-            {/* --- TU ZAČÍNA NOVÁ SEKČIA PRE OZNAMY (Hneď po scrollovaní nižšie) --- */}
-            <div className="pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <Megaphone size={18} className="text-orange-500" />
-                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">
-                  Aktuálny oznam / Novinka na webe
-                </label>
+            {/* --- SEKCIA OZNAM A OBRÁZOK --- */}
+            <div className="pt-4 border-t border-gray-100 space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Megaphone size={18} className="text-orange-500" />
+                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">Aktuálny oznam</label>
+                </div>
+                <textarea rows="2" className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black bg-orange-50/30" value={menu.announcement} onChange={(e) => setMenu({...menu, announcement: e.target.value})} placeholder="Napíš oznam..." />
               </div>
-              <textarea
-                rows="3"
-                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black bg-orange-50/30 placeholder-gray-400"
-                value={menu.announcement}
-                onChange={(e) => setMenu({...menu, announcement: e.target.value})}
-                placeholder="napr. Dnes 15.11. zatvorené z technických príčin. Alebo: Prijímame objednávky na akcie!"
-              />
-              <p className="text-xs text-gray-400 mt-1 italic">
-                *Ak nechcete na hlavnej stránke zobrazovať žiadny oznam, jednoducho toto pole vymažte a uložte zmeny.
-              </p>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">Fotka k oznamu</label>
+                <div className="flex items-center gap-4">
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
+                </div>
+                {menu.image && (
+                  <div className="mt-4">
+                    <img src={menu.image} alt="Náhľad" className="w-32 h-32 object-cover rounded-xl border-2 border-orange-500 shadow-md" />
+                    <button type="button" onClick={() => setMenu({...menu, image: ''})} className="text-xs text-red-500 mt-2 underline">Odstrániť fotku</button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {status.message && (
