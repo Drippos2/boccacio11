@@ -1,35 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye, Megaphone, Image as ImageIcon } from 'lucide-react';
+import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye, Megaphone, Video, Image as ImageIcon } from 'lucide-react';
 
 const AnimatedCounter = ({ targetValue }) => {
   const [displayValue, setDisplayValue] = useState(0);
-
   useEffect(() => {
     let start = displayValue;
     const end = targetValue;
     if (start === end) return;
-
     const duration = 1500; 
     const range = end - start;
     let startTime = null;
-
     const animate = (currentTime) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       const currentCount = Math.floor(progress * range + start);
-      
       setDisplayValue(currentCount);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setDisplayValue(end);
-      }
+      if (progress < 1) requestAnimationFrame(animate);
+      else setDisplayValue(end);
     };
-
     requestAnimationFrame(animate);
   }, [targetValue]);
-
   return <span>{displayValue.toLocaleString()}</span>;
 };
 
@@ -39,12 +29,15 @@ const AdminPanel = () => {
   const [passwordInput, setPasswordInput] = useState("");
   const [status, setStatus] = useState({ type: '', message: '' });
   const [visits, setVisits] = useState(0);
+  
+  // Rozšírený state pre menu
   const [menu, setMenu] = useState({
     soup: '',
     mainCourse: '',
     price: '8,90 €',
     announcement: '',
-    image: '' // Pridané pole pre obrázok
+    mediaType: 'none', // 'none', 'image', 'video-file', 'video-url'
+    mediaContent: ''   // Tu bude Base64 alebo URL
   });
 
   useEffect(() => {
@@ -55,21 +48,12 @@ const AdminPanel = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    const interval = setInterval(() => {
-      fetchStats();
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [isLoggedIn]);
-
-  // Funkcia na konverziu obrázka na Base64
-  const handleImageUpload = (e) => {
+  const handleMediaUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setMenu({ ...menu, image: reader.result });
+        setMenu({ ...menu, mediaContent: reader.result });
       };
       reader.readAsDataURL(file);
     }
@@ -80,9 +64,7 @@ const AdminPanel = () => {
       const res = await fetch("https://boccacio11.onrender.com/api/stats");
       const data = await res.json();
       setVisits(data.total_visits || 0);
-    } catch (err) {
-      console.error("Nepodarilo sa načítať štatistiky");
-    }
+    } catch (err) { console.error("Chyba stats"); }
   };
 
   const fetchCurrentMenu = async () => {
@@ -95,12 +77,11 @@ const AdminPanel = () => {
           mainCourse: data.mainCourse || '',
           price: data.price || '8,90 €',
           announcement: data.announcement || '',
-          image: data.image || '' // Načítanie existujúceho obrázka
+          mediaType: data.mediaType || 'none',
+          mediaContent: data.mediaContent || ''
         });
       }
-    } catch (err) {
-      console.error("Nepodarilo sa načítať dáta z backendu.");
-    }
+    } catch (err) { console.error("Chyba menu"); }
   };
 
   const handleLogin = (e) => {
@@ -110,59 +91,33 @@ const AdminPanel = () => {
       localStorage.setItem("admin_auth", "true");
       fetchCurrentMenu();
       fetchStats();
-    } else {
-      alert("Nesprávne heslo!");
-    }
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem("admin_auth");
+    } else { alert("Nesprávne heslo!"); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: 'loading', message: 'Ukladám...' });
-
     try {
       const response = await fetch("https://boccacio11.onrender.com/api/daily-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(menu),
       });
-
       if (response.ok) {
-        setStatus({ type: 'success', message: 'Dáta boli úspešne uložené!' });
+        setStatus({ type: 'success', message: 'Uložené!' });
         setTimeout(() => setStatus({ type: '', message: '' }), 3000);
-      } else {
-        throw new Error();
-      }
-    } catch (err) {
-      setStatus({ type: 'error', message: 'Chyba! Beží ti backend (Python)?' });
-    }
+      } else throw new Error();
+    } catch (err) { setStatus({ type: 'error', message: 'Chyba servera!' }); }
   };
 
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-4 border-orange-500 text-black">
-          <div className="flex justify-center mb-6">
-            <div className="bg-orange-100 p-4 rounded-full">
-              <Lock className="text-orange-600" size={32} />
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Admin Prístup</h2>
+        <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-4 border-orange-500">
+          <h2 className="text-2xl font-bold text-center mb-6">Admin Prístup</h2>
           <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="password"
-              placeholder="Zadajte heslo"
-              className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all text-black"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-            />
-            <button className="w-full bg-orange-500 text-white py-4 rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg">
-              Vstúpiť
-            </button>
+            <input type="password" placeholder="Heslo" className="w-full p-4 border rounded-xl" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} />
+            <button className="w-full bg-orange-500 text-white py-4 rounded-xl font-bold">Vstúpiť</button>
           </form>
         </div>
       </div>
@@ -173,73 +128,53 @@ const AdminPanel = () => {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 text-black">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 flex items-center gap-6">
-          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
-            <Eye size={32} />
-          </div>
+          <Eye size={32} className="text-blue-600" />
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">Návštevnosť webu</p>
-            <p className="text-5xl font-black text-gray-900 tracking-tighter">
-              <AnimatedCounter targetValue={visits} />
-            </p>
+            <p className="text-xs font-bold text-gray-400 uppercase">Návštevnosť</p>
+            <p className="text-5xl font-black"><AnimatedCounter targetValue={visits} /></p>
           </div>
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
           <div className="bg-orange-500 p-6 text-white flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Utensils size={24} />
-              <h1 className="text-xl font-bold uppercase tracking-wider text-white">Správa Denného Menu</h1>
-            </div>
-            <button onClick={handleLogout} className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium text-white">
-              <LogOut size={18} /> Odhlásiť
-            </button>
+            <h1 className="text-xl font-bold uppercase">Správa Menu</h1>
+            <button onClick={() => { localStorage.removeItem("admin_auth"); window.location.reload(); }} className="bg-orange-600 px-4 py-2 rounded-lg text-sm">Odhlásiť</button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase italic">Dnešná polievka</label>
-              <input type="text" className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black" value={menu.soup} onChange={(e) => setMenu({...menu, soup: e.target.value})} placeholder="napr. Slepačí vývar s rezancami" />
+              <label className="block text-sm font-bold text-gray-700 uppercase">Polievka</label>
+              <input type="text" className="w-full p-4 border rounded-xl" value={menu.soup} onChange={(e) => setMenu({...menu, soup: e.target.value})} />
             </div>
-
+            
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase italic">Hlavné jedlo</label>
-              <textarea rows="3" className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black" value={menu.mainCourse} onChange={(e) => setMenu({...menu, mainCourse: e.target.value})} placeholder="napr. 150g Viedenský bravčový rezeň, zemiakový šalát" />
+              <label className="block text-sm font-bold text-gray-700 uppercase">Hlavné jedlo</label>
+              <textarea rows="3" className="w-full p-4 border rounded-xl" value={menu.mainCourse} onChange={(e) => setMenu({...menu, mainCourse: e.target.value})} />
             </div>
 
-            {/* --- SEKCIA OZNAM A OBRÁZOK --- */}
             <div className="pt-4 border-t border-gray-100 space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Megaphone size={18} className="text-orange-500" />
-                  <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide">Aktuálny oznam</label>
-                </div>
-                <textarea rows="2" className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-lg text-black bg-orange-50/30" value={menu.announcement} onChange={(e) => setMenu({...menu, announcement: e.target.value})} placeholder="Napíš oznam..." />
-              </div>
+              <label className="block text-sm font-bold text-gray-700 uppercase">Typ média</label>
+              <select className="w-full p-4 border rounded-xl bg-white" value={menu.mediaType} onChange={(e) => setMenu({...menu, mediaType: e.target.value, mediaContent: ''})}>
+                <option value="none">Žiadne médium</option>
+                <option value="image">Obrázok (nahrať)</option>
+                <option value="video-file">Video súbor (nahrať)</option>
+                <option value="video-url">Video z linku (URL)</option>
+              </select>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">Fotka k oznamu</label>
-                <div className="flex items-center gap-4">
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
-                </div>
-                {menu.image && (
-                  <div className="mt-4">
-                    <img src={menu.image} alt="Náhľad" className="w-32 h-32 object-cover rounded-xl border-2 border-orange-500 shadow-md" />
-                    <button type="button" onClick={() => setMenu({...menu, image: ''})} className="text-xs text-red-500 mt-2 underline">Odstrániť fotku</button>
-                  </div>
-                )}
-              </div>
+              {menu.mediaType === 'image' && (
+                <input type="file" accept="image/*" onChange={handleMediaUpload} />
+              )}
+              {menu.mediaType === 'video-file' && (
+                <input type="file" accept="video/mp4" onChange={handleMediaUpload} />
+              )}
+              {menu.mediaType === 'video-url' && (
+                <input type="text" placeholder="Vlož URL adresu videa..." className="w-full p-4 border rounded-xl" value={menu.mediaContent} onChange={(e) => setMenu({...menu, mediaContent: e.target.value})} />
+              )}
             </div>
 
-            {status.message && (
-              <div className={`p-4 rounded-xl flex items-center gap-3 ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                {status.type === 'success' ? <CheckCircle size={20} /> : <XCircle size={20} />}
-                {status.message}
-              </div>
-            )}
+            {status.message && <div className="p-4 rounded-xl bg-green-50 text-green-700">{status.message}</div>}
 
-            <button type="submit" className="w-full bg-gray-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl">
-              <Save size={24} /> ULOŽIŤ ZMENY
-            </button>
+            <button type="submit" className="w-full bg-gray-900 text-white py-5 rounded-2xl font-bold shadow-xl">ULOŽIŤ ZMENY</button>
           </form>
         </div>
       </div>

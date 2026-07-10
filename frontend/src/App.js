@@ -831,8 +831,11 @@ const JedalnyListokSection = () => {
 };
 
 const NewsSection = () => {
-  // Ukladáme celý objekt, nielen string
-  const [newsData, setNewsData] = useState({ announcement: "", image: "" });
+  const [newsData, setNewsData] = useState({ 
+    announcement: "", 
+    mediaType: "none", 
+    mediaContent: "" 
+  });
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -840,14 +843,13 @@ const NewsSection = () => {
         const response = await fetch("https://boccacio11.onrender.com/api/daily-menu");
         const data = await response.json();
         
-        // Ak existuje oznam, uložíme ho aj s obrázkom
+        // Ak existuje oznam, uložíme všetky dáta
         if (data && data.announcement) {
           setNewsData({ 
             announcement: data.announcement, 
-            image: data.image || "" 
+            mediaType: data.mediaType || "none",
+            mediaContent: data.mediaContent || "" 
           });
-        } else {
-          setNewsData({ announcement: "", image: "" });
         }
       } catch (err) {
         console.error("Chyba pri načítaní noviniek:", err);
@@ -856,19 +858,40 @@ const NewsSection = () => {
     fetchNews();
   }, []);
 
-  // Ak nie je nastavený žiadny oznam, sekcia sa nevykreslí (zachovaná logika)
   if (!newsData.announcement) return null;
 
   return (
     <section className="bg-orange-500 py-6 text-center text-white">
       <div className="max-w-4xl mx-auto px-6">
-        {/* Obrázok sa zobrazí len ak existuje */}
-        {newsData.image && (
+        
+        {/* LOGIKA ZOBRAZENIA MÉDIA */}
+        {newsData.mediaType === 'image' && newsData.mediaContent && (
           <img 
-            src={newsData.image} 
+            src={newsData.mediaContent} 
             alt="Aktuálna novinka" 
             className="w-full max-w-sm mx-auto rounded-xl mb-4 border-2 border-white/20 shadow-lg"
           />
+        )}
+        
+        {newsData.mediaType === 'video-file' && newsData.mediaContent && (
+          <video 
+            controls 
+            className="w-full max-w-sm mx-auto rounded-xl mb-4 border-2 border-white/20 shadow-lg"
+          >
+            <source src={newsData.mediaContent} type="video/mp4" />
+            Váš prehliadač nepodporuje video.
+          </video>
+        )}
+
+        {newsData.mediaType === 'video-url' && newsData.mediaContent && (
+          <div className="w-full max-w-sm mx-auto rounded-xl mb-4 border-2 border-white/20 shadow-lg overflow-hidden">
+            <iframe 
+              src={newsData.mediaContent} 
+              className="w-full aspect-video"
+              title="Video oznam"
+              allowFullScreen
+            />
+          </div>
         )}
         
         <h2 className="text-xl font-bold uppercase tracking-widest mb-1 opacity-90">Aktuálne oznamy</h2>
