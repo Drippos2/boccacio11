@@ -843,10 +843,9 @@ const NewsSection = () => {
         const response = await fetch("https://boccacio11.onrender.com/api/daily-menu");
         const data = await response.json();
         
-        // Ak existuje oznam, uložíme všetky dáta
-        if (data && data.announcement) {
+        if (data) {
           setNewsData({ 
-            announcement: data.announcement, 
+            announcement: data.announcement || "", 
             mediaType: data.mediaType || "none",
             mediaContent: data.mediaContent || "" 
           });
@@ -858,7 +857,9 @@ const NewsSection = () => {
     fetchNews();
   }, []);
 
-  if (!newsData.announcement) return null;
+  // OPRAVA: Sekcia sa zobrazí, ak existuje oznam ALEBO nejaké médium
+  const hasContent = newsData.announcement || newsData.mediaType !== 'none';
+  if (!hasContent) return null;
 
   return (
     <section className="bg-orange-500 py-6 text-center text-white">
@@ -894,8 +895,14 @@ const NewsSection = () => {
           </div>
         )}
         
-        <h2 className="text-xl font-bold uppercase tracking-widest mb-1 opacity-90">Aktuálne oznamy</h2>
-        <p className="text-xl font-medium">{newsData.announcement}</p>
+        {/* TEXT OZNAMU - VŽDY ZOBRAZÍME, AK EXISTUJE */}
+        {newsData.announcement && (
+          <>
+            <h2 className="text-xl font-bold uppercase tracking-widest mb-1 opacity-90">Aktuálne oznamy</h2>
+            <p className="text-xl font-medium">{newsData.announcement}</p>
+          </>
+        )}
+        
       </div>
     </section>
   );

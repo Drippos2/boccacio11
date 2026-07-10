@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Utensils, LogOut, Lock, CheckCircle, XCircle, Eye, Megaphone, Video, Image as ImageIcon } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 const AnimatedCounter = ({ targetValue }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -30,14 +30,13 @@ const AdminPanel = () => {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [visits, setVisits] = useState(0);
   
-  // Rozšírený state pre menu
   const [menu, setMenu] = useState({
     soup: '',
     mainCourse: '',
     price: '8,90 €',
     announcement: '',
-    mediaType: 'none', // 'none', 'image', 'video-file', 'video-url'
-    mediaContent: ''   // Tu bude Base64 alebo URL
+    mediaType: 'none',
+    mediaContent: ''
   });
 
   useEffect(() => {
@@ -101,7 +100,7 @@ const AdminPanel = () => {
       const response = await fetch("https://boccacio11.onrender.com/api/daily-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(menu),
+        body: JSON.stringify(menu), // Posiela celý objekt menu (aj announcement, aj media)
       });
       if (response.ok) {
         setStatus({ type: 'success', message: 'Uložené!' });
@@ -152,6 +151,12 @@ const AdminPanel = () => {
               <textarea rows="3" className="w-full p-4 border rounded-xl" value={menu.mainCourse} onChange={(e) => setMenu({...menu, mainCourse: e.target.value})} />
             </div>
 
+            {/* OZNAM */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 uppercase">Aktuálne oznamy</label>
+              <input type="text" className="w-full p-4 border rounded-xl" placeholder="Napr. KRYTÁ TERASA ☀️" value={menu.announcement} onChange={(e) => setMenu({...menu, announcement: e.target.value})} />
+            </div>
+
             <div className="pt-4 border-t border-gray-100 space-y-4">
               <label className="block text-sm font-bold text-gray-700 uppercase">Typ média</label>
               <select className="w-full p-4 border rounded-xl bg-white" value={menu.mediaType} onChange={(e) => setMenu({...menu, mediaType: e.target.value, mediaContent: ''})}>
@@ -161,14 +166,10 @@ const AdminPanel = () => {
                 <option value="video-url">Video z linku (URL)</option>
               </select>
 
-              {menu.mediaType === 'image' && (
-                <input type="file" accept="image/*" onChange={handleMediaUpload} />
-              )}
-              {menu.mediaType === 'video-file' && (
-                <input type="file" accept="video/mp4" onChange={handleMediaUpload} />
-              )}
+              {menu.mediaType === 'image' && <input type="file" accept="image/*" onChange={handleMediaUpload} />}
+              {menu.mediaType === 'video-file' && <input type="file" accept="video/mp4" onChange={handleMediaUpload} />}
               {menu.mediaType === 'video-url' && (
-                <input type="text" placeholder="Vlož URL adresu videa..." className="w-full p-4 border rounded-xl" value={menu.mediaContent} onChange={(e) => setMenu({...menu, mediaContent: e.target.value})} />
+                <input type="text" placeholder="Vlož URL adresu (napr. https://youtube.com/embed/...)" className="w-full p-4 border rounded-xl" value={menu.mediaContent} onChange={(e) => setMenu({...menu, mediaContent: e.target.value})} />
               )}
             </div>
 
